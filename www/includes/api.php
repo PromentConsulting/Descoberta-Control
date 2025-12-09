@@ -21,9 +21,8 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
         $defaultHeaders[] = 'Content-Type: application/json';
     }
 
-    if (!empty($config['consumer_key']) && !empty($config['consumer_secret'])) {
-        curl_setopt($ch, CURLOPT_USERPWD, $config['consumer_key'] . ':' . $config['consumer_secret']);
-    } elseif (!empty($config['basic_user'])) {
+    // Autenticación para pasar protecciones básicas del sitio (por ejemplo .htpasswd)
+    if (!empty($config['basic_user'])) {
         curl_setopt($ch, CURLOPT_USERPWD, $config['basic_user'] . ':' . ($config['basic_password'] ?? ''));
     }
 
@@ -50,6 +49,7 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CUSTOMREQUEST => $method,
         CURLOPT_HTTPHEADER => array_merge($defaultHeaders, $headers),
+        CURLOPT_FOLLOWLOCATION => true,
     ]);
 
     if ($method !== 'GET' && !empty($data)) {
