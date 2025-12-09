@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . '/../includes/bootstrap.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,5 +11,4 @@
     <script src="/assets/js/app.js" defer></script>
 </head>
 <body>
-
 <div class="layout">
