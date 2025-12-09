@@ -52,10 +52,19 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
     }
 
     $decoded = json_decode($response, true);
+    $success = $status >= 200 && $status < 300;
+    $error = null;
+
+    if (!$success) {
+        $bodyMessage = is_string($response) ? $response : json_encode($decoded);
+        $error = "HTTP $status" . ($bodyMessage ? ": $bodyMessage" : '');
+    }
+
     return [
-        'success' => $status >= 200 && $status < 300,
+        'success' => $success,
         'status' => $status,
         'data' => $decoded ?? $response,
+        'error' => $error,
     ];
 }
 
