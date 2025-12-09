@@ -27,8 +27,22 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
         curl_setopt($ch, CURLOPT_USERPWD, $config['basic_user'] . ':' . ($config['basic_password'] ?? ''));
     }
 
+    $urlParams = [];
+
     if ($method === 'GET' && !empty($data)) {
-        $url .= '?' . http_build_query($data);
+        $urlParams = $data;
+    }
+
+    // Algunos hosts WooCommerce en HTTP requieren consumer_key/consumer_secret en la URL.
+    if (!empty($config['consumer_key']) && !empty($config['consumer_secret']) && strpos($endpoint, 'wc/') !== false) {
+        $urlParams = array_merge($urlParams, [
+            'consumer_key' => $config['consumer_key'],
+            'consumer_secret' => $config['consumer_secret'],
+        ]);
+    }
+
+    if (!empty($urlParams)) {
+        $url .= (strpos($url, '?') === false ? '?' : '&') . http_build_query($urlParams);
     }
 
     curl_setopt_array($ch, [
@@ -52,10 +66,19 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
     }
 
     $decoded = json_decode($response, true);
+    $success = $status >= 200 && $status < 300;
+    $error = null;
+
+    if (!$success) {
+        $bodyMessage = is_string($response) ? $response : json_encode($decoded);
+        $error = "HTTP $status" . ($bodyMessage ? ": $bodyMessage" : '');
+    }
+
     return [
-        'success' => $status >= 200 && $status < 300,
+        'success' => $success,
         'status' => $status,
         'data' => $decoded ?? $response,
+        'error' => $error,
     ];
 }
 
