@@ -1,0 +1,573 @@
+/* ==========================================================================
+   FUENTES Y RESETEO BÁSICO
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #f9fafb, #eef2ff);
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar suave */
+::-webkit-scrollbar {
+    width: 7px;
+}
+::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5f5;
+    border-radius: 999px;
+}
+
+/* ==========================================================================
+   LAYOUT GENERAL
+   ========================================================================== */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   SIDEBAR MINIMALISTA
+   ========================================================================== */
+
+.sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    padding: 24px 20px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+    z-index: 10;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.logo img {
+    max-width: 140px;
+    height: auto;
+    filter: drop-shadow(0 6px 16px rgba(15, 23, 42, 0.12));
+    animation: floatLogo 3s ease-in-out infinite;
+}
+
+@keyframes floatLogo {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Items de menú grandes, centrados, muy limpios */
+
+.sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    color: #4b5563;
+    font-size: 0.98rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.sidebar nav a i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.05rem;
+    color: #6b7280;
+}
+
+.sidebar nav a:hover {
+    background: #eef2ff;
+    color: #1f2937;
+    transform: translateX(4px);
+}
+
+.sidebar nav a:hover i {
+    color: #4f46e5;
+}
+
+/* Opción activa (si la usas con PHP) */
+.sidebar nav a.active {
+    background: #4f46e5;
+    color: #ffffff;
+}
+.sidebar nav a.active i {
+    color: #e0e7ff;
+}
+
+/* ==========================================================================
+   CONTENIDO PRINCIPAL
+   ========================================================================== */
+
+.content {
+    flex: 1;
+    padding: 32px 40px 40px;
+    color: #0f172a;
+    margin-left: 240px;   /* hueco para el sidebar fijo */
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* centramos horizontalmente */
+}
+
+/* Aplicamos ancho máximo solo a los hijos "normales",
+   NO al overlay del modal (evitamos el corte) */
+.content > *:not(.modal-overlay) {
+    max-width: 1120px;
+    width: 100%;
+}
+
+/* Títulos generales, centrados */
+
+.content h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #111827;
+    text-align: center;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+
+.subtitle {
+    margin-top: 2px;
+    margin-bottom: 24px;
+    color: #6b7280;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+/* ==========================================================================
+   TARJETAS DEL DASHBOARD (blancas y minimal)
+   ========================================================================== */
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    position: relative;
+    padding: 18px 20px 20px;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.03);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #111827;
+}
+
+.card p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+.card p a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+.card p a:hover {
+    text-decoration: underline;
+}
+
+.card .btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Tarjeta principal un poco más marcada */
+
+.card.principal {
+    border-color: #c7d2fe;
+    box-shadow: 0 12px 26px rgba(79, 70, 229, 0.08);
+    background: linear-gradient(135deg, #ffffff, #eef2ff);
+}
+
+.card.principal h2 {
+    letter-spacing: 0.08em;
+}
+
+/* Hover */
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    border-color: #d1d5db;
+}
+
+/* ==========================================================================
+   BOTONES
+   ========================================================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: none;
+    background: #4f46e5;
+    color: #f9fafb;
+    font-size: 0.86rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    box-shadow: 0 8px 16px rgba(79, 70, 229, 0.25);
+}
+
+.btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
+
+.btn.secondary {
+    background: #ffffff;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+    box-shadow: none;
+}
+
+.btn.secondary:hover {
+    background: #eef2ff;
+}
+
+.btn.large {
+    margin-top: 8px;
+    padding: 10px 22px;
+    font-size: 0.92rem;
+}
+
+.btn.small {
+    padding: 6px 11px;
+    font-size: 0.8rem;
+}
+
+/* ==========================================================================
+   FORMULARIOS
+   ========================================================================== */
+
+.form-card {
+    margin-top: 6px;
+    padding: 22px 20px 24px;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-card label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #111827;
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.form-card input:focus,
+.form-card select:focus,
+.form-card textarea:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.18);
+    background: #ffffff;
+}
+
+.form-card textarea {
+    resize: vertical;
+}
+
+/* ==========================================================================
+   TABLAS (Editar Cases)
+   ========================================================================== */
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.03);
+}
+
+.styled-table thead {
+    background: #f3f4f6;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    text-align: left;
+    color: #374151;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+}
+
+.styled-table tbody tr:hover {
+    background: #eef2ff;
+}
+
+/* ==========================================================================
+   MODAL (popup Edición Casa)
+   ========================================================================== */
+
+/* Overlay a pantalla completa, centrado */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.25);
+    display: none;              /* se activa con .open */
+    align-items: center;        /* centra vertical */
+    justify-content: center;    /* centra horizontal */
+    padding: 16px;
+    box-sizing: border-box;
+    z-index: 50;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+/* Caja del popup */
+.modal {
+    width: 100%;
+    max-width: 760px;
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+    padding: 18px 20px 20px;
+    animation: fadeInUp 0.25s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.modal-header h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.modal-close:hover {
+    color: #111827;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    gap: 8px;
+}
+
+/* columnas de multi-checkbox */
+
+.modal-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.modal-panel {
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    padding: 10px 10px 8px;
+    background: #f9fafb;
+}
+
+.modal-panel h3 {
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #111827;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 170px;
+    overflow: auto;
+}
+
+.checkbox-list label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 400;
+    color: #374151;
+}
+
+.checkbox-list input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+}
+
+/* ==========================================================================
+   EFECTOS DE ENTRADA
+   ========================================================================== */
+
+.fade-in {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 960px) {
+    .layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: static;
+        min-height: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 16px;
+        gap: 10px;
+    }
+
+    .sidebar nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 22px 16px 28px;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        max-width: 95%;
+    }
+}
+
+@media (max-width: 520px) {
+    .sidebar nav a span {
+        display: none;
+    }
+
+    .sidebar nav a i {
+        margin-right: 0;
+    }
+
+    .modal-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .content h1 {
+        font-size: 1.7rem;
+    }
+}
