@@ -1,13 +1,17 @@
+<?php $user = current_user(); ?>
 <aside class="sidebar">
     <div class="logo">
         <img src="/assets/img/logo.png" alt="Logo">
     </div>
 
     <nav>
-        <a href="/dashboard.php"><i class="fa fa-home"></i> Dashboard</a>
-        <a href="/activitats_dia.php"><i class="fa fa-sun"></i> Activitats de dia</a>
-        <a href="/centres_interes.php"><i class="fa fa-star"></i> Centres d'interès</a>
-        <a href="#"><i class="fa fa-cog"></i> Ajustes</a>
-        <a href="#"><i class="fa fa-door-open"></i> Salir</a>
+        <a class="<?php echo view_active('dashboard.php'); ?>" href="/dashboard.php"><i class="fa fa-home"></i> Dashboard</a>
+        <a class="<?php echo view_active('activitats_dia.php'); ?>" href="/activitats_dia.php"><i class="fa fa-sun"></i> Activitats de dia</a>
+        <a class="<?php echo view_active('centres_interes.php'); ?>" href="/centres_interes.php"><i class="fa fa-star"></i> Centres d'interès</a>
+        <a class="<?php echo view_active('crear_blog.php'); ?>" href="/crear_blog.php"><i class="fa fa-pen"></i> Crear Blogs</a>
+        <?php if ($user && $user['role'] === 'admin'): ?>
+            <a class="<?php echo view_active('ajustes.php'); ?>" href="/ajustes.php"><i class="fa fa-cog"></i> Ajustes</a>
+        <?php endif; ?>
+        <a href="/logout.php"><i class="fa fa-door-open"></i> Salir</a>
     </nav>
 </aside>
