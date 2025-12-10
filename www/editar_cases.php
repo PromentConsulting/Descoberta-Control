@@ -102,18 +102,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <td>
                             <form method="POST" class="inline-form">
                                 <input type="hidden" name="product_id" value="<?php echo $case['id']; ?>">
-                                <select name="activitats[]" multiple size="5">
+                                <div class="selector-box">
                                     <?php foreach ($activitats as $act): ?>
-                                        <option value="<?php echo $act['id']; ?>" <?php echo in_array($act['id'], $caseActivitats) ? 'selected' : ''; ?>><?php echo htmlspecialchars($act['name']); ?></option>
+                                        <label class="selector-item">
+                                            <input type="checkbox" name="activitats[]" value="<?php echo $act['id']; ?>" <?php echo in_array($act['id'], $caseActivitats) ? 'checked' : ''; ?>>
+                                            <span><?php echo htmlspecialchars($act['name']); ?></span>
+                                        </label>
                                     <?php endforeach; ?>
-                                </select>
+                                </div>
                         </td>
                         <td>
-                                <select name="centres[]" multiple size="5">
+                                <div class="selector-box">
                                     <?php foreach ($centres as $centre): ?>
-                                        <option value="<?php echo $centre['id']; ?>" <?php echo in_array($centre['id'], $caseCentres) ? 'selected' : ''; ?>><?php echo htmlspecialchars($centre['name']); ?></option>
+                                        <label class="selector-item">
+                                            <input type="checkbox" name="centres[]" value="<?php echo $centre['id']; ?>" <?php echo in_array($centre['id'], $caseCentres) ? 'checked' : ''; ?>>
+                                            <span><?php echo htmlspecialchars($centre['name']); ?></span>
+                                        </label>
                                     <?php endforeach; ?>
-                                </select>
+                                </div>
                         </td>
                         <td>
                                 <button type="submit" class="btn small">Desar</button>
