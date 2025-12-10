@@ -11,13 +11,38 @@ $cases = $casesResponse['success'] ? filter_products_by_category($casesResponse[
 $activitats = $activitatsResponse['success'] ? filter_products_by_category($activitatsResponse['data'], 'activitat-de-dia') : [];
 $centres = $centresResponse['success'] ? filter_products_by_category($centresResponse['data'], 'centre-interes') : [];
 
+function meta_value(array $product, string $key) {
+    foreach ($product['meta_data'] ?? [] as $meta) {
+        if (($meta['key'] ?? '') === $key) {
+            return $meta['value'];
+        }
+    }
+    return null;
+}
+
+function selected_items(array $product, string $metaKey, array $fallback = []): array {
+    $stored = meta_value($product, $metaKey);
+    if (is_array($stored)) {
+        return array_map('intval', $stored);
+    }
+    if (!empty($product[$metaKey]) && is_array($product[$metaKey])) {
+        return array_map('intval', $product[$metaKey]);
+    }
+    return $fallback;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productId = (int)($_POST['product_id'] ?? 0);
     $selectedActivitats = array_map('intval', $_POST['activitats'] ?? []);
     $selectedCentres = array_map('intval', $_POST['centres'] ?? []);
 
     $payload = [
-        'related_ids' => array_merge($selectedActivitats, $selectedCentres),
+        'upsell_ids' => $selectedActivitats,
+        'cross_sell_ids' => $selectedCentres,
+        'meta_data' => [
+            ['key' => 'related_activitats', 'value' => $selectedActivitats],
+            ['key' => 'related_centres', 'value' => $selectedCentres],
+        ],
     ];
     $update = woo_update_product('descoberta', $productId, $payload);
 
@@ -33,12 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             if (!empty($sourceProduct)) {
-                sync_case_to_site($siteKey, $sourceProduct, ['url' => $ACF_FIELD_KEYS['url']]);
+                $sync = sync_case_to_site($siteKey, $sourceProduct, ['url' => $ACF_FIELD_KEYS['url']]);
+                if (!$sync['success']) {
+                    flash('error', 'No s\'ha pogut sincronitzar la casa a ' . site_config($siteKey)['name'] . ': ' . ($sync['error'] ?? 'Error desconegut'));
+                }
             }
         }
-        flash('success', 'Relaciones guardadas');
+        flash('success', 'Relacions desades');
     } else {
-        flash('error', 'Error al actualizar: ' . json_encode($update['data']));
+        flash('error', 'Error en actualitzar: ' . json_encode($update['data']));
     }
     redirect('/editar_cases.php');
 }
@@ -47,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include "templates/sidebar.php"; ?>
 
 <main class="content fade-in">
-    <h1>Editar Cases</h1>
-    <p class="subtitle">Asigna activitats de dia i centres d'interès</p>
+    <h1>Editar cases</h1>
+    <p class="subtitle">Assigna activitats de dia i centres d'interès</p>
 
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>
@@ -58,14 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Nombre</th>
+                    <th>Nom</th>
                     <th>Activitats</th>
                     <th>Centres</th>
-                    <th>Acciones</th>
+                    <th>Accions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($cases as $case): $highlight = isset($CASE_SPECIAL_MAPPING[$case['id']]); ?>
+                <?php foreach ($cases as $case): $highlight = isset($CASE_SPECIAL_MAPPING[$case['id']]);
+                    $caseActivitats = selected_items($case, 'related_activitats', $case['upsell_ids'] ?? []);
+                    $caseCentres = selected_items($case, 'related_centres', $case['cross_sell_ids'] ?? []);
+                ?>
                     <tr class="<?php echo $highlight ? 'highlight' : ''; ?>">
                         <td><?php echo htmlspecialchars($case['name']); ?></td>
                         <td>
@@ -73,19 +104,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="product_id" value="<?php echo $case['id']; ?>">
                                 <select name="activitats[]" multiple size="5">
                                     <?php foreach ($activitats as $act): ?>
-                                        <option value="<?php echo $act['id']; ?>" <?php echo in_array($act['id'], $case['related_ids'] ?? []) ? 'selected' : ''; ?>><?php echo htmlspecialchars($act['name']); ?></option>
+                                        <option value="<?php echo $act['id']; ?>" <?php echo in_array($act['id'], $caseActivitats) ? 'selected' : ''; ?>><?php echo htmlspecialchars($act['name']); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                         </td>
                         <td>
                                 <select name="centres[]" multiple size="5">
                                     <?php foreach ($centres as $centre): ?>
-                                        <option value="<?php echo $centre['id']; ?>" <?php echo in_array($centre['id'], $case['related_ids'] ?? []) ? 'selected' : ''; ?>><?php echo htmlspecialchars($centre['name']); ?></option>
+                                        <option value="<?php echo $centre['id']; ?>" <?php echo in_array($centre['id'], $caseCentres) ? 'selected' : ''; ?>><?php echo htmlspecialchars($centre['name']); ?></option>
                                     <?php endforeach; ?>
                                 </select>
                         </td>
                         <td>
-                                <button type="submit" class="btn small">Guardar</button>
+                                <button type="submit" class="btn small">Desar</button>
                             </form>
                         </td>
                     </tr>

@@ -22,8 +22,10 @@ function api_request(string $siteKey, string $method, string $endpoint, array $d
     }
 
     // Autenticación para pasar protecciones básicas del sitio (por ejemplo .htpasswd)
-    if (!empty($config['basic_user'])) {
-        curl_setopt($ch, CURLOPT_USERPWD, $config['basic_user'] . ':' . ($config['basic_password'] ?? ''));
+    if (!empty($config['basic_user']) || !empty($config['consumer_key'])) {
+        $authUser = $config['basic_user'] ?: $config['consumer_key'];
+        $authPass = $config['basic_password'] ?: ($config['consumer_secret'] ?? '');
+        curl_setopt($ch, CURLOPT_USERPWD, $authUser . ':' . $authPass);
     }
 
     $urlParams = [];
@@ -111,10 +113,10 @@ function wp_upload_media(string $siteKey, array $file): array {
         'Content-Disposition: attachment; filename="' . basename($file['name']) . '"',
     ];
 
-    if (!empty($config['basic_user'])) {
-        curl_setopt($ch, CURLOPT_USERPWD, $config['basic_user'] . ':' . ($config['basic_password'] ?? ''));
-    } elseif (!empty($config['consumer_key'])) {
-        curl_setopt($ch, CURLOPT_USERPWD, $config['consumer_key'] . ':' . ($config['consumer_secret'] ?? ''));
+    if (!empty($config['basic_user']) || !empty($config['consumer_key'])) {
+        $authUser = $config['basic_user'] ?: $config['consumer_key'];
+        $authPass = $config['basic_password'] ?: ($config['consumer_secret'] ?? '');
+        curl_setopt($ch, CURLOPT_USERPWD, $authUser . ':' . $authPass);
     }
 
     curl_setopt_array($ch, [
@@ -134,10 +136,23 @@ function wp_upload_media(string $siteKey, array $file): array {
         return ['success' => false, 'error' => $err];
     }
 
+    $decoded = json_decode($response, true);
+    $success = $status >= 200 && $status < 300;
+    $error = null;
+
+    if (!$success) {
+        if (is_array($decoded) && isset($decoded['message'])) {
+            $error = $decoded['message'];
+        } else {
+            $error = "HTTP $status" . ($response ? ": $response" : '');
+        }
+    }
+
     return [
-        'success' => $status >= 200 && $status < 300,
+        'success' => $success,
         'status' => $status,
-        'data' => json_decode($response, true) ?? $response,
+        'data' => $decoded ?? $response,
+        'error' => $error,
     ];
 }
 

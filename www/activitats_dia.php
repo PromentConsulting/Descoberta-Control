@@ -9,7 +9,7 @@ $response = woo_products('descoberta');
 if ($response['success']) {
     $products = filter_products_by_category($response['data'], 'activitat-de-dia');
 } else {
-    $apiError = $response['error'] ?? 'No se pudo conectar con la API de Descoberta';
+    $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $payload['images'] = [['id' => $upload['data']['id']]];
             $payload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $upload['data']['id']];
         } else {
-            flash('error', 'No se pudo subir la imagen: ' . ($upload['error'] ?? 'error desconocido'));
+            flash('error', 'No s\'ha pogut pujar la imatge: ' . ($upload['error'] ?? 'error desconegut'));
         }
     } elseif ($featuredUrl) {
         $payload['images'] = [['src' => $featuredUrl]];
@@ -58,10 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $create = woo_create_product('descoberta', $payload);
     if ($create['success']) {
-        flash('success', 'Activitat creada correctamente');
+        flash('success', 'Activitat creada correctament');
         redirect('/activitats_dia.php');
     } else {
-        flash('error', 'Error al crear: ' . json_encode($create['data']));
+        flash('error', 'Error en crear la fitxa: ' . json_encode($create['data']));
         redirect('/activitats_dia.php');
     }
 }
@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include "templates/sidebar.php"; ?>
 
 <main class="content fade-in">
-    <h1>Activitats de Dia</h1>
-    <p class="subtitle">Productos de WooCommerce con categoría activitat-de-dia</p>
+    <h1>Activitats de dia</h1>
+    <p class="subtitle">Productes de WooCommerce amb la categoria activitat-de-dia</p>
 
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>
@@ -85,10 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Título</th>
-                    <th>Estado</th>
-                    <th>Imagen</th>
-                    <th>Actualizado</th>
+                    <th>Títol</th>
+                    <th>Estat</th>
+                    <th>Imatge</th>
+                    <th>Actualitzat</th>
                 </tr>
             </thead>
             <tbody>
@@ -109,15 +109,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="modal-overlay" id="modalActivitat">
         <div class="modal">
             <div class="modal-header">
-                <h2>Crear Activitat de dia</h2>
+                <h2>Crear activitat de dia</h2>
                 <button class="modal-close" type="button">&times;</button>
             </div>
             <div class="modal-body">
                 <form class="form-card" method="POST" enctype="multipart/form-data">
-                    <label>Título del producto</label>
+                    <label>Títol del producte</label>
                     <input type="text" name="title" required>
 
-                    <label>Descripción</label>
+                    <label>Descripció</label>
                     <textarea name="description" rows="4" required></textarea>
 
                     <div class="two-columns">
@@ -151,13 +151,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Inclou</label>
                     <input type="text" name="inclou">
 
-                    <label>Imagen destacada</label>
+                    <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
-                    <p class="hint">O pega una URL directa</p>
+                    <p class="hint">O enganxa una URL directa</p>
                     <input type="url" name="featured_url" placeholder="https://...">
 
                     <div class="modal-footer">
-                        <button type="button" class="btn secondary modal-close">Cancelar</button>
+                        <button type="button" class="btn secondary modal-close">Cancel·lar</button>
                         <button type="submit" class="btn">Crear</button>
                     </div>
                 </form>
