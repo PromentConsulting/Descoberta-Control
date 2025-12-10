@@ -9,7 +9,7 @@ $response = woo_products('descoberta');
 if ($response['success']) {
     $products = filter_products_by_category($response['data'], 'centre-interes');
 } else {
-    $apiError = $response['error'] ?? 'No se pudo conectar con la API de Descoberta';
+    $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $payload['images'] = [['id' => $upload['data']['id']]];
             $payload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $upload['data']['id']];
         } else {
-            flash('error', 'No se pudo subir la imagen: ' . ($upload['error'] ?? 'error desconocido'));
+            flash('error', 'No s\'ha pogut pujar la imatge: ' . ($upload['error'] ?? 'error desconegut'));
         }
     } elseif ($featuredUrl) {
         $payload['images'] = [['src' => $featuredUrl]];
@@ -61,10 +61,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $create = woo_create_product('descoberta', $payload);
     if ($create['success']) {
-        flash('success', 'Centre d\'interès creado');
+        flash('success', 'Centre d\'interès creat');
         redirect('/centres_interes.php');
     } else {
-        flash('error', 'Error al crear: ' . json_encode($create['data']));
+        flash('error', 'Error en crear la fitxa: ' . json_encode($create['data']));
         redirect('/centres_interes.php');
     }
 }
@@ -86,10 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Título</th>
-                    <th>Estado</th>
-                    <th>Imagen</th>
-                    <th>Actualizado</th>
+                    <th>Títol</th>
+                    <th>Estat</th>
+                    <th>Imatge</th>
+                    <th>Actualitzat</th>
                 </tr>
             </thead>
             <tbody>
@@ -115,13 +115,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="modal-body scrollable">
                 <form class="form-card" method="POST" enctype="multipart/form-data">
-                    <label>Título del producto</label>
+                    <label>Títol del producte</label>
                     <input type="text" name="title" required>
 
-                    <label>Descripción</label>
+                    <label>Descripció</label>
                     <textarea name="description" rows="4" required></textarea>
 
-                    <label>Competencies</label>
+                    <label>Competències</label>
                     <input type="text" name="competencies">
                     <label>Metodologia</label>
                     <input type="text" name="metodologia">
@@ -150,13 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Altres propostes semblants</label>
                     <input type="text" name="altres_propostes">
 
-                    <label>Imagen destacada</label>
+                    <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
-                    <p class="hint">O pega una URL directa</p>
+                    <p class="hint">O enganxa una URL directa</p>
                     <input type="url" name="featured_url" placeholder="https://...">
 
                     <div class="modal-footer">
-                        <button type="button" class="btn secondary modal-close">Cancelar</button>
+                        <button type="button" class="btn secondary modal-close">Cancel·lar</button>
                         <button type="submit" class="btn">Crear</button>
                     </div>
                 </form>

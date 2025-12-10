@@ -14,8 +14,8 @@ $cards = [
 <?php include "templates/sidebar.php"; ?>
 
 <main class="content fade-in">
-    <h1>Panel Descoberta</h1>
-    <p class="subtitle">Gestión centralizada de blogs y actividades</p>
+    <h1>Tauler Descoberta</h1>
+    <p class="subtitle">Gestió centralitzada de blogs i activitats</p>
 
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>
@@ -25,11 +25,11 @@ $cards = [
         <?php foreach ($cards as $card): ?>
             <div class="card <?php echo $card['highlight'] ?? false ? 'principal' : ''; ?>">
                 <h2><?php echo htmlspecialchars($card['title']); ?></h2>
-                <p><a href="<?php echo htmlspecialchars($card['url']); ?>" target="_blank">Visitar Web</a></p>
+                <p><a href="<?php echo htmlspecialchars($card['url']); ?>" target="_blank">Visitar web</a></p>
                 <div class="btn-group">
-                    <a class="btn" href="crear_blog.php">Crear Blog</a>
+                    <a class="btn" href="crear_blog.php">Crear blog</a>
                     <?php if (($card['highlight'] ?? false)): ?>
-                        <a class="btn secondary" href="editar_cases.php">Editar Cases</a>
+                        <a class="btn secondary" href="editar_cases.php">Editar cases</a>
                     <?php endif; ?>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../includes/bootstrap.php';
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
     <title>Panel Descoberta</title>
