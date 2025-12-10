@@ -147,7 +147,7 @@ body {
 
 /* Aplicamos ancho máximo solo a los hijos "normales",
    NO al overlay del modal (evitamos el corte) */
-.content > *:not(.modal-overlay) {
+.content > *:not(.modal-overlay):not(.fab) {
     max-width: 1120px;
     width: 100%;
 }
@@ -622,8 +622,11 @@ body {
 .checkbox-list { display: flex; flex-direction: column; gap: 6px; }
 .checkbox-list.horizontal { flex-direction: row; flex-wrap: wrap; gap: 10px; }
 .hint { font-size: 0.85rem; color: #9ca3af; }
-.inline-form { display: flex; flex-direction: row; gap: 8px; align-items: center; }
+.inline-form { display: flex; flex-direction: row; gap: 8px; align-items: flex-start; }
 .inline-form select { min-width: 180px; }
+.selector-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.selector-item { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #111827; }
+.selector-item input { width: 16px; height: 16px; }
 
 /* FAB + Modals */
 .fab {

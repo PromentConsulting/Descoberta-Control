@@ -26,12 +26,11 @@ $cards = [
             <div class="card <?php echo $card['highlight'] ?? false ? 'principal' : ''; ?>">
                 <h2><?php echo htmlspecialchars($card['title']); ?></h2>
                 <p><a href="<?php echo htmlspecialchars($card['url']); ?>" target="_blank">Visitar web</a></p>
-                <div class="btn-group">
-                    <a class="btn" href="crear_blog.php">Crear blog</a>
-                    <?php if (($card['highlight'] ?? false)): ?>
+                <?php if (($card['highlight'] ?? false)): ?>
+                    <div class="btn-group">
                         <a class="btn secondary" href="editar_cases.php">Editar cases</a>
-                    <?php endif; ?>
-                </div>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     </div>
