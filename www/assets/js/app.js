@@ -256,6 +256,13 @@ document.addEventListener("DOMContentLoaded", () => {
             select.value = value || '';
         };
 
+        const metaFromProduct = (product, key) => {
+            if (product?.meta && Object.prototype.hasOwnProperty.call(product.meta, key)) {
+                return product.meta[key];
+            }
+            return metaValue(product, window.CASE_META_KEYS[key]);
+        };
+
         const setNormativaText = (value) => {
             if (!normativaHint) return;
             normativaHint.textContent = value ? `Fitxer actual: ${value}` : 'No hi ha cap fitxer pujat.';
@@ -271,22 +278,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
                 setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
 
-                form.querySelector('[name="places"]').value = metaValue(product, window.CASE_META_KEYS.places) || '';
-                form.querySelector('[name="regims_admessos"]').value = metaValue(product, window.CASE_META_KEYS.regims_admessos) || '';
-                form.querySelector('[name="exclusivitat"]').value = metaValue(product, window.CASE_META_KEYS.exclusivitat) || '';
-                form.querySelector('[name="habitacions"]').value = metaValue(product, window.CASE_META_KEYS.habitacions) || '';
-                form.querySelector('[name="provincia"]').value = metaValue(product, window.CASE_META_KEYS.provincia) || '';
-                form.querySelector('[name="comarca"]').value = metaValue(product, window.CASE_META_KEYS.comarca) || '';
-                form.querySelector('[name="calefaccio"]').value = metaValue(product, window.CASE_META_KEYS.calefaccio) || '';
-                form.querySelector('[name="sales_activitats"]').value = metaValue(product, window.CASE_META_KEYS.sales_activitats) || '';
-                form.querySelector('[name="exteriors"]').value = metaValue(product, window.CASE_META_KEYS.exteriors) || '';
-                form.querySelector('[name="places_adaptades"]').value = metaValue(product, window.CASE_META_KEYS.places_adaptades) || '';
-                form.querySelector('[name="google_maps"]').value = metaValue(product, window.CASE_META_KEYS.google_maps) || '';
+                form.querySelector('[name="places"]').value = metaFromProduct(product, 'places') || '';
+                form.querySelector('[name="regims_admessos"]').value = metaFromProduct(product, 'regims_admessos') || '';
+                form.querySelector('[name="exclusivitat"]').value = metaFromProduct(product, 'exclusivitat') || '';
+                form.querySelector('[name="habitacions"]').value = metaFromProduct(product, 'habitacions') || '';
+                form.querySelector('[name="provincia"]').value = metaFromProduct(product, 'provincia') || '';
+                form.querySelector('[name="comarca"]').value = metaFromProduct(product, 'comarca') || '';
+                form.querySelector('[name="calefaccio"]').value = metaFromProduct(product, 'calefaccio') || '';
+                form.querySelector('[name="sales_activitats"]').value = metaFromProduct(product, 'sales_activitats') || '';
+                form.querySelector('[name="exteriors"]').value = metaFromProduct(product, 'exteriors') || '';
+                form.querySelector('[name="places_adaptades"]').value = metaFromProduct(product, 'places_adaptades') || '';
+                form.querySelector('[name="google_maps"]').value = metaFromProduct(product, 'google_maps') || '';
 
-                setSelectValue(form.querySelector('[name="piscina"]'), normalizeYesNo(metaValue(product, window.CASE_META_KEYS.piscina)));
-                setSelectValue(form.querySelector('[name="wifi"]'), normalizeYesNo(metaValue(product, window.CASE_META_KEYS.wifi)));
+                setSelectValue(form.querySelector('[name="piscina"]'), normalizeYesNo(metaFromProduct(product, 'piscina')));
+                setSelectValue(form.querySelector('[name="wifi"]'), normalizeYesNo(metaFromProduct(product, 'wifi')));
 
-                const normativaVal = metaValue(product, window.CASE_META_KEYS.normativa) || '';
+                const normativaVal = metaFromProduct(product, 'normativa') || '';
                 form.querySelector('[name="existing_normativa"]').value = normativaVal;
                 setNormativaText(normativaVal);
 
