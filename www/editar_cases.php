@@ -408,8 +408,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
     <div class="filters-card">
         <form method="GET" class="filters-grid">
             <div class="filter-block range" data-range-filter>
-                <div class="filter-label">Places</div>
-                <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['places_min'] . ' - ' . $filters['places_max']); ?></div>
+                <div class="filter-header">
+                    <label class="filter-label">Places</label>
+                    <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['places_min'] . ' - ' . $filters['places_max']); ?></div>
+                </div>
                 <div class="range-inputs">
                     <input type="range" name="places_min" min="<?php echo $placesRange['min']; ?>" max="<?php echo $placesRange['max']; ?>" value="<?php echo htmlspecialchars((string)$filters['places_min']); ?>" data-range-min>
                     <input type="range" name="places_max" min="<?php echo $placesRange['min']; ?>" max="<?php echo $placesRange['max']; ?>" value="<?php echo htmlspecialchars((string)$filters['places_max']); ?>" data-range-max>
@@ -426,8 +428,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
             </div>
 
             <div class="filter-block range" data-range-filter>
-                <div class="filter-label">Exclusivitat</div>
-                <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['exclusivitat_min'] . ' - ' . $filters['exclusivitat_max']); ?></div>
+                <div class="filter-header">
+                    <label class="filter-label">Exclusivitat</label>
+                    <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['exclusivitat_min'] . ' - ' . $filters['exclusivitat_max']); ?></div>
+                </div>
                 <div class="range-inputs">
                     <input type="range" name="exclusivitat_min" min="0" max="300" value="<?php echo htmlspecialchars((string)$filters['exclusivitat_min']); ?>" data-range-min>
                     <input type="range" name="exclusivitat_max" min="0" max="300" value="<?php echo htmlspecialchars((string)$filters['exclusivitat_max']); ?>" data-range-max>
@@ -490,9 +494,36 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($cases as $case): $highlight = isset($CASE_SPECIAL_MAPPING[$case['id']]);
+                <?php foreach ($cases as $case):
+                    $highlight = isset($CASE_SPECIAL_MAPPING[$case['id']]);
                     $caseActivitats = selected_items($case, 'related_activitats', $case['upsell_ids'] ?? []);
                     $caseCentres = selected_items($case, 'related_centres', $case['cross_sell_ids'] ?? []);
+
+                    $caseMeta = [
+                        'places' => (int)meta_value($case, $caseKeys['places'] ?? ''),
+                        'regims_admessos' => (string)meta_value($case, $caseKeys['regims_admessos'] ?? ''),
+                        'exclusivitat' => (int)meta_value($case, $caseKeys['exclusivitat'] ?? ''),
+                        'habitacions' => (string)meta_value($case, $caseKeys['habitacions'] ?? ''),
+                        'provincia' => (string)meta_value($case, $caseKeys['provincia'] ?? ''),
+                        'comarca' => (string)meta_value($case, $caseKeys['comarca'] ?? ''),
+                        'calefaccio' => (string)meta_value($case, $caseKeys['calefaccio'] ?? ''),
+                        'sales_activitats' => (string)meta_value($case, $caseKeys['sales_activitats'] ?? ''),
+                        'exteriors' => (string)meta_value($case, $caseKeys['exteriors'] ?? ''),
+                        'piscina' => normalize_yes_no(meta_value($case, $caseKeys['piscina'] ?? '')),
+                        'places_adaptades' => (int)meta_value($case, $caseKeys['places_adaptades'] ?? ''),
+                        'wifi' => normalize_yes_no(meta_value($case, $caseKeys['wifi'] ?? '')),
+                        'normativa' => (string)meta_value($case, $caseKeys['normativa'] ?? ''),
+                        'google_maps' => (string)meta_value($case, $caseKeys['google_maps'] ?? ''),
+                    ];
+
+                    $casePayload = [
+                        'id' => $case['id'],
+                        'name' => $case['name'] ?? '',
+                        'description' => $case['description'] ?? '',
+                        'short_description' => $case['short_description'] ?? '',
+                        'meta' => $caseMeta,
+                        'meta_data' => $case['meta_data'] ?? [],
+                    ];
                 ?>
                     <tr class="<?php echo $highlight ? 'highlight' : ''; ?>">
                         <td><?php echo htmlspecialchars($case['name']); ?></td>
@@ -526,7 +557,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                                             class="btn secondary small"
                                             title="Editar"
                                             data-open="modalEditCase"
-                                            data-edit-case="<?php echo htmlspecialchars(json_encode($case, ENT_QUOTES, 'UTF-8')); ?>">
+                                            data-edit-case='<?php echo json_encode($casePayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>'>
                                         Editar
                                     </button>
                                 </div>
