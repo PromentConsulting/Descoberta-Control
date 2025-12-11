@@ -56,4 +56,43 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    const sortableTables = document.querySelectorAll('.styled-table');
+    sortableTables.forEach(table => {
+        const headers = table.querySelectorAll('th[data-sort-key]');
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        headers.forEach(header => {
+            header.addEventListener('click', () => {
+                const key = header.dataset.sortKey;
+                if (!key) return;
+
+                const nextDir = header.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+                headers.forEach(h => h.removeAttribute('data-sort-dir'));
+                header.dataset.sortDir = nextDir;
+
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort((a, b) => {
+                    const aCell = a.querySelector(`td[data-col="${key}"]`);
+                    const bCell = b.querySelector(`td[data-col="${key}"]`);
+
+                    const aVal = (aCell?.dataset.sortValue ?? aCell?.textContent ?? '').trim();
+                    const bVal = (bCell?.dataset.sortValue ?? bCell?.textContent ?? '').trim();
+
+                    const aNum = Number(aVal);
+                    const bNum = Number(bVal);
+                    const numeric = aVal !== '' && bVal !== '' && !Number.isNaN(aNum) && !Number.isNaN(bNum);
+
+                    const comparison = numeric
+                        ? aNum - bNum
+                        : aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
+
+                    return nextDir === 'asc' ? comparison : -comparison;
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    });
 });
