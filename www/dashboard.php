@@ -3,11 +3,11 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
 $cards = [
-    ['key' => 'descoberta', 'title' => 'DESCOBERTA', 'url' => 'http://descoberta.vl26404.dinaserver.com/', 'highlight' => true],
-    ['key' => 'can-pere', 'title' => 'Can Pere', 'url' => 'http://canpere.vl26404.dinaserver.com/'],
-    ['key' => 'cal-mata', 'title' => 'Cal Mata', 'url' => 'https://www.calmata.cat/'],
-    ['key' => 'can-foix', 'title' => 'Can Foix', 'url' => 'http://canfoixdescoberta.vl26404.dinaserver.com/'],
-    ['key' => 'el-ginebro', 'title' => 'El Ginebro', 'url' => 'http://elginebro.vl26404.dinaserver.com/'],
+    ['key' => 'descoberta', 'title' => 'DESCOBERTA', 'url' => 'https://descobertaweb.promentconsulting.com/', 'highlight' => true],
+    ['key' => 'can-pere', 'title' => 'Can Pere', 'url' => 'https://canperedescoberta.promentconsulting.com/'],
+    ['key' => 'cal-mata', 'title' => 'Cal Mata', 'url' => 'https://escolesdescoberta.promentconsulting.com/'],
+    ['key' => 'can-foix', 'title' => 'Can Foix', 'url' => 'https://canfoixdescoberta.promentconsulting.com/'],
+    ['key' => 'el-ginebro', 'title' => 'El Ginebro', 'url' => 'https://elginebrodescoberta.promentconsulting.com/'],
 ];
 ?>
 <?php include "templates/header.php"; ?>
