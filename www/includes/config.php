@@ -85,6 +85,22 @@ $CASE_SPECIAL_MAPPING = [
 ];
 
 $ACF_FIELD_KEYS = [
+    'cases' => [
+        'places' => 'places',
+        'regims_admessos' => 'Regims_admessos',
+        'exclusivitat' => 'exclusivitat',
+        'habitacions' => 'habitacions',
+        'provincia' => 'provincia',
+        'comarca' => 'comarca',
+        'calefaccio' => 'calefaccio',
+        'sales_activitats' => 'sales_activitats',
+        'exteriors' => 'exteriors',
+        'piscina' => 'piscina',
+        'places_adaptades' => 'places_adptades',
+        'wifi' => 'wifi',
+        'normativa' => 'normativa_de_la_casa',
+        'google_maps' => 'google_maps',
+    ],
     'activitats' => [
         'cicles' => 'cicles-filtro',
         'categoria' => 'categoria',

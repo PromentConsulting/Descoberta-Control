@@ -31,6 +31,22 @@ function selected_items(array $product, string $metaKey, array $fallback = []): 
     return $fallback;
 }
 
+function regims_array(string $value): array {
+    $parts = preg_split('/-+/', $value) ?: [];
+    return array_values(array_filter(array_map('trim', $parts)));
+}
+
+function normalize_yes_no($value): string {
+    $val = strtolower((string)$value);
+    if ($val === 'si' || $val === 'sí') {
+        return 'Si';
+    }
+    if ($val === 'no') {
+        return 'No';
+    }
+    return '';
+}
+
 function find_product_by_id(array $products, int $id): ?array {
     foreach ($products as $product) {
         if ((int)($product['id'] ?? 0) === $id) {
@@ -167,6 +183,75 @@ function sync_related_content_to_site(
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['product_action'] ?? '';
+
+    if ($action === 'edit_case') {
+        global $ACF_FIELD_KEYS;
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $currentCase = find_product_by_id($cases, $productId);
+        $caseKeys = $ACF_FIELD_KEYS['cases'] ?? [];
+
+        if (!$currentCase) {
+            flash('error', 'No s\'ha trobat la casa seleccionada.');
+            redirect('/editar_cases.php');
+        }
+
+        $title = trim($_POST['title'] ?? ($currentCase['name'] ?? ''));
+        $description = trim($_POST['description'] ?? ($currentCase['description'] ?? ''));
+        $shortDescription = trim($_POST['short_description'] ?? ($currentCase['short_description'] ?? ''));
+
+        $getMeta = function (string $key) use ($currentCase, $caseKeys) {
+            return meta_value($currentCase, $caseKeys[$key] ?? '') ?? '';
+        };
+
+        $normativaVal = trim($_POST['existing_normativa'] ?? (string)$getMeta('normativa'));
+        if (!empty($_FILES['normativa']['tmp_name'])) {
+            $upload = wp_upload_media('descoberta', $_FILES['normativa']);
+            if ($upload['success'] && isset($upload['data']['source_url'])) {
+                $normativaVal = $upload['data']['source_url'];
+            } else {
+                flash('error', 'No s\'ha pogut pujar la normativa: ' . ($upload['error'] ?? 'Error desconegut'));
+            }
+        }
+
+        $piscinaVal = normalize_yes_no($_POST['piscina'] ?? $getMeta('piscina')) ?: normalize_yes_no($getMeta('piscina'));
+        $wifiVal = normalize_yes_no($_POST['wifi'] ?? $getMeta('wifi')) ?: normalize_yes_no($getMeta('wifi'));
+
+        $metaPayload = [
+            ['key' => $caseKeys['places'] ?? 'places', 'value' => (int)($_POST['places'] ?? (int)$getMeta('places'))],
+            ['key' => $caseKeys['regims_admessos'] ?? 'Regims_admessos', 'value' => trim($_POST['regims_admessos'] ?? (string)$getMeta('regims_admessos'))],
+            ['key' => $caseKeys['exclusivitat'] ?? 'exclusivitat', 'value' => (int)($_POST['exclusivitat'] ?? (int)$getMeta('exclusivitat'))],
+            ['key' => $caseKeys['habitacions'] ?? 'habitacions', 'value' => trim($_POST['habitacions'] ?? (string)$getMeta('habitacions'))],
+            ['key' => $caseKeys['provincia'] ?? 'provincia', 'value' => trim($_POST['provincia'] ?? (string)$getMeta('provincia'))],
+            ['key' => $caseKeys['comarca'] ?? 'comarca', 'value' => trim($_POST['comarca'] ?? (string)$getMeta('comarca'))],
+            ['key' => $caseKeys['calefaccio'] ?? 'calefaccio', 'value' => trim($_POST['calefaccio'] ?? (string)$getMeta('calefaccio'))],
+            ['key' => $caseKeys['sales_activitats'] ?? 'sales_activitats', 'value' => trim($_POST['sales_activitats'] ?? (string)$getMeta('sales_activitats'))],
+            ['key' => $caseKeys['exteriors'] ?? 'exteriors', 'value' => trim($_POST['exteriors'] ?? (string)$getMeta('exteriors'))],
+            ['key' => $caseKeys['piscina'] ?? 'piscina', 'value' => $piscinaVal ?: (string)$getMeta('piscina')],
+            ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? (int)$getMeta('places_adaptades'))],
+            ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal ?: (string)$getMeta('wifi')],
+            ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
+            ['key' => $caseKeys['google_maps'] ?? 'google_maps', 'value' => trim($_POST['google_maps'] ?? (string)$getMeta('google_maps'))],
+        ];
+
+        $payload = [
+            'name' => $title,
+            'description' => $description,
+            'short_description' => $shortDescription,
+            'meta_data' => $metaPayload,
+        ];
+
+        $update = woo_update_product('descoberta', $productId, $payload);
+
+        if ($update['success']) {
+            flash('success', 'Casa actualitzada correctament');
+        } else {
+            flash('error', 'No s\'ha pogut actualitzar la casa: ' . ($update['error'] ?? json_encode($update['data'])));
+        }
+
+        redirect('/editar_cases.php');
+    }
+
     $productId = (int)($_POST['product_id'] ?? 0);
     $selectedActivitats = array_map('intval', $_POST['activitats'] ?? []);
     $selectedCentres = array_map('intval', $_POST['centres'] ?? []);
@@ -210,6 +295,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     redirect('/editar_cases.php');
 }
+
+global $ACF_FIELD_KEYS;
+$caseKeys = $ACF_FIELD_KEYS['cases'] ?? [];
+$placesRange = ['min' => 0, 'max' => 300];
+
+$regimsOptions = [];
+$provinciesOptions = [];
+$comarquesOptions = [];
+
+foreach ($cases as $case) {
+    $regimsVal = (string)meta_value($case, $caseKeys['regims_admessos'] ?? '');
+    foreach (regims_array($regimsVal) as $regim) {
+        $regimsOptions[] = $regim;
+    }
+
+    $provincia = trim((string)meta_value($case, $caseKeys['provincia'] ?? ''));
+    $comarca = trim((string)meta_value($case, $caseKeys['comarca'] ?? ''));
+
+    if ($provincia !== '') {
+        $provinciesOptions[] = $provincia;
+    }
+    if ($comarca !== '') {
+        $comarquesOptions[] = $comarca;
+    }
+}
+
+$regimsOptions = array_values(array_unique($regimsOptions));
+sort($regimsOptions, SORT_NATURAL | SORT_FLAG_CASE);
+$provinciesOptions = array_values(array_unique($provinciesOptions));
+sort($provinciesOptions, SORT_NATURAL | SORT_FLAG_CASE);
+$comarquesOptions = array_values(array_unique($comarquesOptions));
+sort($comarquesOptions, SORT_NATURAL | SORT_FLAG_CASE);
+
+$filters = [
+    'places_min' => max($placesRange['min'], (int)($_GET['places_min'] ?? $placesRange['min'])),
+    'places_max' => min($placesRange['max'], (int)($_GET['places_max'] ?? $placesRange['max'])),
+    'exclusivitat_min' => max(0, (int)($_GET['exclusivitat_min'] ?? 0)),
+    'exclusivitat_max' => min(300, (int)($_GET['exclusivitat_max'] ?? 300)),
+    'regims' => array_filter($_GET['regims'] ?? [], fn($val) => $val !== ''),
+    'provincia' => trim($_GET['provincia'] ?? ''),
+    'comarca' => trim($_GET['comarca'] ?? ''),
+    'piscina' => normalize_yes_no($_GET['piscina'] ?? ''),
+    'wifi' => normalize_yes_no($_GET['wifi'] ?? ''),
+];
+
+if ($filters['places_min'] > $filters['places_max']) {
+    $filters['places_min'] = $placesRange['min'];
+    $filters['places_max'] = $placesRange['max'];
+}
+if ($filters['exclusivitat_min'] > $filters['exclusivitat_max']) {
+    $filters['exclusivitat_min'] = 0;
+    $filters['exclusivitat_max'] = 300;
+}
+
+$cases = array_values(array_filter($cases, function ($case) use ($filters, $caseKeys) {
+    $places = (int)(meta_value($case, $caseKeys['places'] ?? '') ?? 0);
+    $exclusivitat = (int)(meta_value($case, $caseKeys['exclusivitat'] ?? '') ?? 0);
+    $regims = regims_array((string)meta_value($case, $caseKeys['regims_admessos'] ?? '') ?? '');
+    $provincia = trim((string)meta_value($case, $caseKeys['provincia'] ?? ''));
+    $comarca = trim((string)meta_value($case, $caseKeys['comarca'] ?? ''));
+    $piscina = normalize_yes_no(meta_value($case, $caseKeys['piscina'] ?? ''));
+    $wifi = normalize_yes_no(meta_value($case, $caseKeys['wifi'] ?? ''));
+
+    if ($places < $filters['places_min'] || $places > $filters['places_max']) {
+        return false;
+    }
+
+    if ($exclusivitat < $filters['exclusivitat_min'] || $exclusivitat > $filters['exclusivitat_max']) {
+        return false;
+    }
+
+    if ($filters['regims']) {
+        $regimsLower = array_map('strtolower', $regims);
+        foreach ($filters['regims'] as $selected) {
+            if (!in_array(strtolower($selected), $regimsLower, true)) {
+                return false;
+            }
+        }
+    }
+
+    if ($filters['provincia'] !== '' && strcasecmp($filters['provincia'], $provincia) !== 0) {
+        return false;
+    }
+
+    if ($filters['comarca'] !== '' && strcasecmp($filters['comarca'], $comarca) !== 0) {
+        return false;
+    }
+
+    if ($filters['piscina'] !== '' && $filters['piscina'] !== $piscina) {
+        return false;
+    }
+
+    if ($filters['wifi'] !== '' && $filters['wifi'] !== $wifi) {
+        return false;
+    }
+
+    return true;
+}));
 ?>
 <?php include "templates/header.php"; ?>
 <?php include "templates/sidebar.php"; ?>
@@ -221,6 +404,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>
     <?php endforeach; ?>
+
+    <div class="filters-card">
+        <form method="GET" class="filters-grid">
+            <div class="filter-block range" data-range-filter>
+                <div class="filter-label">Places</div>
+                <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['places_min'] . ' - ' . $filters['places_max']); ?></div>
+                <div class="range-inputs">
+                    <input type="range" name="places_min" min="<?php echo $placesRange['min']; ?>" max="<?php echo $placesRange['max']; ?>" value="<?php echo htmlspecialchars((string)$filters['places_min']); ?>" data-range-min>
+                    <input type="range" name="places_max" min="<?php echo $placesRange['min']; ?>" max="<?php echo $placesRange['max']; ?>" value="<?php echo htmlspecialchars((string)$filters['places_max']); ?>" data-range-max>
+                </div>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Règims admessos</label>
+                <select name="regims[]" multiple>
+                    <?php foreach ($regimsOptions as $regim): ?>
+                        <option value="<?php echo htmlspecialchars($regim); ?>" <?php echo in_array($regim, $filters['regims'], true) ? 'selected' : ''; ?>><?php echo htmlspecialchars($regim); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="filter-block range" data-range-filter>
+                <div class="filter-label">Exclusivitat</div>
+                <div class="range-values" data-range-display><?php echo htmlspecialchars($filters['exclusivitat_min'] . ' - ' . $filters['exclusivitat_max']); ?></div>
+                <div class="range-inputs">
+                    <input type="range" name="exclusivitat_min" min="0" max="300" value="<?php echo htmlspecialchars((string)$filters['exclusivitat_min']); ?>" data-range-min>
+                    <input type="range" name="exclusivitat_max" min="0" max="300" value="<?php echo htmlspecialchars((string)$filters['exclusivitat_max']); ?>" data-range-max>
+                </div>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Província</label>
+                <select name="provincia">
+                    <option value="">Totes</option>
+                    <?php foreach ($provinciesOptions as $provincia): ?>
+                        <option value="<?php echo htmlspecialchars($provincia); ?>" <?php echo strcasecmp($filters['provincia'], $provincia) === 0 ? 'selected' : ''; ?>><?php echo htmlspecialchars($provincia); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Comarca</label>
+                <select name="comarca">
+                    <option value="">Totes</option>
+                    <?php foreach ($comarquesOptions as $comarca): ?>
+                        <option value="<?php echo htmlspecialchars($comarca); ?>" <?php echo strcasecmp($filters['comarca'], $comarca) === 0 ? 'selected' : ''; ?>><?php echo htmlspecialchars($comarca); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">Piscina</label>
+                <select name="piscina">
+                    <option value="" <?php echo $filters['piscina'] === '' ? 'selected' : ''; ?>>Totes</option>
+                    <option value="Si" <?php echo $filters['piscina'] === 'Si' ? 'selected' : ''; ?>>Si</option>
+                    <option value="No" <?php echo $filters['piscina'] === 'No' ? 'selected' : ''; ?>>No</option>
+                </select>
+            </div>
+
+            <div class="filter-block">
+                <label class="filter-label">WIFI</label>
+                <select name="wifi">
+                    <option value="" <?php echo $filters['wifi'] === '' ? 'selected' : ''; ?>>Totes</option>
+                    <option value="Si" <?php echo $filters['wifi'] === 'Si' ? 'selected' : ''; ?>>Si</option>
+                    <option value="No" <?php echo $filters['wifi'] === 'No' ? 'selected' : ''; ?>>No</option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn">Aplicar filtres</button>
+                <a class="btn ghost" href="/editar_cases.php">Restablir</a>
+            </div>
+        </form>
+    </div>
 
     <div class="table-wrapper">
         <table class="styled-table">
@@ -241,6 +498,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <td><?php echo htmlspecialchars($case['name']); ?></td>
                         <td>
                             <form method="POST" class="inline-form">
+                                <input type="hidden" name="product_action" value="update_relations">
                                 <input type="hidden" name="product_id" value="<?php echo $case['id']; ?>">
                                 <div class="selector-box">
                                     <?php foreach ($activitats as $act): ?>
@@ -261,8 +519,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php endforeach; ?>
                                 </div>
                         </td>
-                        <td>
-                                <button type="submit" class="btn small">Desar</button>
+                        <td class="actions-cell">
+                                <div class="actions-group">
+                                    <button type="submit" class="btn small">Desar</button>
+                                    <button type="button"
+                                            class="btn secondary small"
+                                            title="Editar"
+                                            data-open="modalEditCase"
+                                            data-edit-case="<?php echo htmlspecialchars(json_encode($case, ENT_QUOTES, 'UTF-8')); ?>">
+                                        Editar
+                                    </button>
+                                </div>
                             </form>
                         </td>
                     </tr>
@@ -270,6 +537,144 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </tbody>
         </table>
     </div>
+
+    <div class="modal-overlay" id="modalEditCase">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2>Editar casa</h2>
+                <button class="modal-close" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="form-card" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="product_action" value="edit_case">
+                    <input type="hidden" name="product_id">
+                    <input type="hidden" name="existing_normativa">
+
+                    <label>Títol</label>
+                    <input type="text" name="title" required>
+
+                    <label>Descripció</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                        <textarea name="description" class="rich" rows="4"></textarea>
+                    </div>
+
+                    <label>Descripció curta del producte</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció curta"></div>
+                        <textarea name="short_description" class="rich" rows="3"></textarea>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Places</label>
+                            <input type="number" name="places" min="0" step="1">
+                        </div>
+                        <div>
+                            <label>Règims admessos</label>
+                            <input type="text" name="regims_admessos" placeholder="Ex: -A-DE-MP-">
+                            <p class="hint">Separar cada règim amb guions com a WooCommerce.</p>
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Exclusivitat a partir de</label>
+                            <input type="number" name="exclusivitat" min="0" step="1">
+                        </div>
+                        <div>
+                            <label>Habitacions</label>
+                            <input type="text" name="habitacions">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Província</label>
+                            <input type="text" name="provincia">
+                        </div>
+                        <div>
+                            <label>Comarca</label>
+                            <input type="text" name="comarca">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Calefacció</label>
+                            <input type="text" name="calefaccio">
+                        </div>
+                        <div>
+                            <label>Sales activitats</label>
+                            <input type="text" name="sales_activitats">
+                        </div>
+                    </div>
+
+                    <label>Exteriors</label>
+                    <input type="text" name="exteriors">
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Piscina</label>
+                            <select name="piscina">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Places adaptades (nº)</label>
+                            <input type="number" name="places_adaptades" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>WIFI</label>
+                            <select name="wifi">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Google Maps</label>
+                            <input type="text" name="google_maps" placeholder="Enllaç o embed">
+                        </div>
+                    </div>
+
+                    <label>Normativa de la casa</label>
+                    <input type="file" name="normativa" accept="application/pdf,.doc,.docx,.png,.jpg,.jpeg">
+                    <p class="hint" data-current-normativa>No hi ha cap fitxer pujat.</p>
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn">Desar canvis</button>
+                        <button type="button" class="btn ghost modal-close">Cancel·lar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.CASE_META_KEYS = <?php echo json_encode($caseKeys); ?>;
+    </script>
 </main>
 
 </div>

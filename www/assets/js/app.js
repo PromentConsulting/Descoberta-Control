@@ -127,9 +127,39 @@ document.addEventListener("DOMContentLoaded", () => {
         if (textarea) textarea.value = content;
     };
 
+    const initRangeFilters = () => {
+        document.querySelectorAll('[data-range-filter]').forEach(wrapper => {
+            const minInput = wrapper.querySelector('[data-range-min]');
+            const maxInput = wrapper.querySelector('[data-range-max]');
+            const display = wrapper.querySelector('[data-range-display]');
+            if (!minInput || !maxInput || !display) return;
+
+            const updateDisplay = () => {
+                const minVal = Number(minInput.value) || 0;
+                const maxVal = Number(maxInput.value) || 0;
+                const realMin = Math.min(minVal, maxVal);
+                const realMax = Math.max(minVal, maxVal);
+                minInput.value = realMin;
+                maxInput.value = realMax;
+                display.textContent = `${realMin} - ${realMax}`;
+            };
+
+            minInput.addEventListener('input', updateDisplay);
+            maxInput.addEventListener('input', updateDisplay);
+            updateDisplay();
+        });
+    };
+
     const metaValue = (product, key) => {
         const meta = (product?.meta_data || []).find(m => m.key === key);
         return meta ? meta.value : '';
+    };
+
+    const normalizeYesNo = (value) => {
+        const val = String(value || '').toLowerCase();
+        if (val === 'si' || val === 'sí') return 'Si';
+        if (val === 'no') return 'No';
+        return '';
     };
 
     const initActivitatEditor = () => {
@@ -213,6 +243,60 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    const initCaseEditor = () => {
+        if (!window.CASE_META_KEYS) return;
+        const modal = document.getElementById('modalEditCase');
+        const form = modal?.querySelector('form');
+        if (!modal || !form) return;
+
+        const normativaHint = modal.querySelector('[data-current-normativa]');
+
+        const setSelectValue = (select, value) => {
+            if (!select) return;
+            select.value = value || '';
+        };
+
+        const setNormativaText = (value) => {
+            if (!normativaHint) return;
+            normativaHint.textContent = value ? `Fitxer actual: ${value}` : 'No hi ha cap fitxer pujat.';
+        };
+
+        document.querySelectorAll('[data-edit-case]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const product = JSON.parse(btn.dataset.editCase || '{}');
+
+                form.querySelector('[name="product_id"]').value = product.id || '';
+                form.querySelector('[name="title"]').value = product.name || '';
+
+                setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
+                setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
+
+                form.querySelector('[name="places"]').value = metaValue(product, window.CASE_META_KEYS.places) || '';
+                form.querySelector('[name="regims_admessos"]').value = metaValue(product, window.CASE_META_KEYS.regims_admessos) || '';
+                form.querySelector('[name="exclusivitat"]').value = metaValue(product, window.CASE_META_KEYS.exclusivitat) || '';
+                form.querySelector('[name="habitacions"]').value = metaValue(product, window.CASE_META_KEYS.habitacions) || '';
+                form.querySelector('[name="provincia"]').value = metaValue(product, window.CASE_META_KEYS.provincia) || '';
+                form.querySelector('[name="comarca"]').value = metaValue(product, window.CASE_META_KEYS.comarca) || '';
+                form.querySelector('[name="calefaccio"]').value = metaValue(product, window.CASE_META_KEYS.calefaccio) || '';
+                form.querySelector('[name="sales_activitats"]').value = metaValue(product, window.CASE_META_KEYS.sales_activitats) || '';
+                form.querySelector('[name="exteriors"]').value = metaValue(product, window.CASE_META_KEYS.exteriors) || '';
+                form.querySelector('[name="places_adaptades"]').value = metaValue(product, window.CASE_META_KEYS.places_adaptades) || '';
+                form.querySelector('[name="google_maps"]').value = metaValue(product, window.CASE_META_KEYS.google_maps) || '';
+
+                setSelectValue(form.querySelector('[name="piscina"]'), normalizeYesNo(metaValue(product, window.CASE_META_KEYS.piscina)));
+                setSelectValue(form.querySelector('[name="wifi"]'), normalizeYesNo(metaValue(product, window.CASE_META_KEYS.wifi)));
+
+                const normativaVal = metaValue(product, window.CASE_META_KEYS.normativa) || '';
+                form.querySelector('[name="existing_normativa"]').value = normativaVal;
+                setNormativaText(normativaVal);
+
+                openModal(modal);
+            });
+        });
+    };
+
+    initRangeFilters();
     initActivitatEditor();
     initCentreEditor();
+    initCaseEditor();
 });
