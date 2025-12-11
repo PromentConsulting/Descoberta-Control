@@ -42,7 +42,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <button type="submit" class="btn full">Entrar</button>
         </form>
-        <p class="auth-footer">Usuario inicial: <strong>admin</strong> | Contraseña: <strong>#123456Ab</strong></p>
     </div>
 </body>
 </html>
