@@ -122,9 +122,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <textarea name="description" rows="4" required></textarea>
 
                     <label>Competències</label>
-                    <input type="text" name="competencies">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències"></div>
+                        <textarea name="competencies" class="rich" rows="4"></textarea>
+                    </div>
                     <label>Metodologia</label>
-                    <input type="text" name="metodologia">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Metodologia"></div>
+                        <textarea name="metodologia" class="rich" rows="4"></textarea>
+                    </div>
 
                     <?php for ($i = 1; $i <= 5; $i++): ?>
                         <div class="two-columns">
@@ -134,21 +156,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div>
                                 <label>Descripció programa <?php echo $i; ?></label>
-                                <input type="text" name="descripcio_programa_<?php echo $i; ?>">
+                                <div class="rich-wrapper" data-rich-editor>
+                                    <div class="rich-toolbar">
+                                        <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                                        <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                        <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                                        <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                                        <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                                        <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                                    </div>
+                                    <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció programa <?php echo $i; ?>"></div>
+                                    <textarea name="descripcio_programa_<?php echo $i; ?>" class="rich" rows="3"></textarea>
+                                </div>
                             </div>
                         </div>
                     <?php endfor; ?>
 
                     <label>Preus</label>
-                    <input type="text" name="preus">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Preus"></div>
+                        <textarea name="preus" class="rich" rows="4"></textarea>
+                    </div>
                     <label>Inclou</label>
-                    <input type="text" name="inclou">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Inclou"></div>
+                        <textarea name="inclou" class="rich" rows="4"></textarea>
+                    </div>
                     <label>Altres activitats</label>
-                    <input type="text" name="altres_activitats">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres activitats"></div>
+                        <textarea name="altres_activitats" class="rich" rows="4"></textarea>
+                    </div>
                     <label>Cases on es pot fer el centre d'interès</label>
-                    <input type="text" name="cases_on_es_pot_fer">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Cases on es pot fer el centre d'interès"></div>
+                        <textarea name="cases_on_es_pot_fer" class="rich" rows="4"></textarea>
+                    </div>
                     <label>Altres propostes semblants</label>
-                    <input type="text" name="altres_propostes">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres propostes semblants"></div>
+                        <textarea name="altres_propostes" class="rich" rows="4"></textarea>
+                    </div>
 
                     <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">

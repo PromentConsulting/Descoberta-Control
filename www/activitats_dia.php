@@ -15,8 +15,17 @@ if ($response['success']) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
-    $cicles = $_POST['cicles'] ?? '';
-    $categoria = $_POST['categoria'] ?? '';
+    $cicles = $_POST['cicles'] ?? [];
+    if (!is_array($cicles)) {
+        $cicles = [$cicles];
+    }
+    $cicles = array_values(array_filter(array_map('trim', $cicles)));
+
+    $categoria = $_POST['categoria'] ?? [];
+    if (!is_array($categoria)) {
+        $categoria = [$categoria];
+    }
+    $categoria = array_values(array_filter(array_map('trim', $categoria)));
     $continguts = trim($_POST['continguts'] ?? '');
     $programa = trim($_POST['programa'] ?? '');
     $preus = trim($_POST['preus'] ?? '');
@@ -123,33 +132,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="two-columns">
                         <div>
                             <label>Cicles</label>
-                            <select name="cicles" required>
+                            <select name="cicles[]" multiple required>
                                 <?php foreach ($CICLES_OPTIONS as $opt): ?>
                                     <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <p class="hint">Selecciona un o més cicles</p>
                         </div>
                         <div>
                             <label>Categoria</label>
-                            <select name="categoria" required>
+                            <select name="categoria[]" multiple required>
                                 <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
                                     <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <p class="hint">Selecciona una o més categories</p>
                         </div>
                     </div>
 
                     <label>Continguts</label>
-                    <input type="text" name="continguts">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Continguts"></div>
+                        <textarea name="continguts" class="rich" rows="4"></textarea>
+                    </div>
 
                     <label>Programa</label>
-                    <input type="text" name="programa">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Programa"></div>
+                        <textarea name="programa" class="rich" rows="4"></textarea>
+                    </div>
 
                     <label>Preus</label>
-                    <input type="text" name="preus">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Preus"></div>
+                        <textarea name="preus" class="rich" rows="4"></textarea>
+                    </div>
 
                     <label>Inclou</label>
-                    <input type="text" name="inclou">
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Inclou"></div>
+                        <textarea name="inclou" class="rich" rows="4"></textarea>
+                    </div>
 
                     <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
