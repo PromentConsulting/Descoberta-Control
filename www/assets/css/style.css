@@ -389,6 +389,19 @@ body {
     font-size: 0.8rem;
 }
 
+.actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+}
+
 /* ==========================================================================
    FORMULARIOS
    ========================================================================== */
@@ -436,6 +449,77 @@ body {
 
 .form-card textarea {
     resize: vertical;
+}
+
+/* ==========================================================================
+   FILTRES
+   ========================================================================== */
+
+.filters-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.03);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    align-items: end;
+}
+
+.filter-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.filter-block select,
+.filter-block input[type="text"],
+.filter-block input[type="number"],
+.filter-block select[multiple] {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.filter-block select[multiple] {
+    min-height: 120px;
+}
+
+.filter-block.range .range-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-block.range input[type="range"] {
+    width: 100%;
+    accent-color: #4f46e5;
+}
+
+.range-values {
+    font-weight: 600;
+    color: #4f46e5;
+    font-size: 0.95rem;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 /* ==========================================================================
