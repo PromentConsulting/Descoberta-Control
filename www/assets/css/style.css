@@ -536,6 +536,12 @@ body {
     background: #ecfdf3;
 }
 
+.icon-btn.primary {
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
 /* ==========================================================================
    MODAL (popup Edición Casa)
    ========================================================================== */
