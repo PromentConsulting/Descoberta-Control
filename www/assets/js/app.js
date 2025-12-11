@@ -1,10 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
     const modals = document.querySelectorAll('.modal-overlay');
+    const openModal = (modal) => {
+        if (modal) {
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+    };
     document.querySelectorAll('[data-open]').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = document.getElementById(btn.dataset.open);
-            if (target) target.classList.add('open');
-            document.body.style.overflow = 'hidden';
+            openModal(target);
         });
     });
 
@@ -25,20 +30,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const richEditors = document.querySelectorAll('[data-rich-editor]');
+    const syncRichWrapper = (wrapper, content = '') => {
+        const textarea = wrapper.querySelector('textarea');
+        const editor = wrapper.querySelector('.rich-editor');
+        if (!textarea || !editor) return;
+        const value = content || textarea.value || '';
+        editor.innerHTML = value;
+        textarea.value = value.trim();
+    };
+
     richEditors.forEach(wrapper => {
         const textarea = wrapper.querySelector('textarea');
         const editor = wrapper.querySelector('.rich-editor');
         const toolbarButtons = wrapper.querySelectorAll('.rich-toolbar button');
 
-        editor.innerHTML = textarea.value;
+        syncRichWrapper(wrapper);
 
         const syncToTextarea = () => {
-            textarea.value = editor.innerHTML.trim();
+            if (textarea && editor) {
+                textarea.value = editor.innerHTML.trim();
+            }
         };
 
-        syncToTextarea();
-
-        editor.addEventListener('input', syncToTextarea);
+        editor?.addEventListener('input', syncToTextarea);
 
         toolbarButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -95,4 +109,110 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    const setSelectValues = (select, values) => {
+        if (!select) return;
+        const normalized = new Set((values || []).map(v => String(v)));
+        Array.from(select.options).forEach(opt => {
+            opt.selected = normalized.has(opt.value);
+        });
+    };
+
+    const setRichContent = (wrapper, value) => {
+        if (!wrapper) return;
+        const textarea = wrapper.querySelector('textarea');
+        const editor = wrapper.querySelector('.rich-editor');
+        const content = value || '';
+        if (editor) editor.innerHTML = content;
+        if (textarea) textarea.value = content;
+    };
+
+    const metaValue = (product, key) => {
+        const meta = (product?.meta_data || []).find(m => m.key === key);
+        return meta ? meta.value : '';
+    };
+
+    const initActivitatEditor = () => {
+        if (!window.ACTIVITAT_META_KEYS) return;
+        const modal = document.getElementById('modalEditActivitat');
+        const form = modal?.querySelector('form');
+        if (!modal || !form) return;
+
+        const buttons = document.querySelectorAll('[data-edit-activitat]');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const product = JSON.parse(btn.dataset.editActivitat || '{}');
+                form.querySelector('[name="product_id"]').value = product.id || '';
+                form.querySelector('[name="status"]').value = product.status || 'draft';
+                form.querySelector('[name="title"]').value = product.name || '';
+                form.querySelector('[name="description"]').value = product.description || '';
+
+                const ciclesVal = metaValue(product, window.ACTIVITAT_META_KEYS.cicles) || [];
+                const categoriaVal = metaValue(product, window.ACTIVITAT_META_KEYS.categoria) || [];
+
+                setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
+                setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
+
+                setRichContent(form.querySelector('[name="continguts"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.continguts) || '');
+                setRichContent(form.querySelector('[name="programa"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.programa) || '');
+                setRichContent(form.querySelector('[name="preus"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.preus) || '');
+                setRichContent(form.querySelector('[name="inclou"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.inclou) || '');
+
+                const firstImage = (product.images || [])[0] || {};
+                form.querySelector('[name="existing_image_id"]').value = firstImage.id || '';
+                form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
+                form.querySelector('[name="featured_url"]').value = firstImage.src || '';
+
+                openModal(modal);
+            });
+        });
+    };
+
+    const initCentreEditor = () => {
+        if (!window.CENTRE_META_KEYS) return;
+        const modal = document.getElementById('modalEditCentre');
+        const form = modal?.querySelector('form');
+        if (!modal || !form) return;
+
+        const buttons = document.querySelectorAll('[data-edit-centre]');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const product = JSON.parse(btn.dataset.editCentre || '{}');
+                form.querySelector('[name="product_id"]').value = product.id || '';
+                form.querySelector('[name="status"]').value = product.status || 'draft';
+                form.querySelector('[name="title"]').value = product.name || '';
+
+                setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
+                setRichContent(form.querySelector('[name="competencies"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.competencies) || '');
+                setRichContent(form.querySelector('[name="metodologia"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.metodologia) || '');
+
+                for (let i = 1; i <= 5; i++) {
+                    const titleField = form.querySelector(`[name="titol_programa_${i}"]`);
+                    const descWrapper = form.querySelector(`[name="descripcio_programa_${i}"]`)?.closest('[data-rich-editor]');
+                    if (titleField) {
+                        titleField.value = metaValue(product, window.CENTRE_META_KEYS[`titol_programa_${i}`]) || '';
+                    }
+                    if (descWrapper) {
+                        setRichContent(descWrapper, metaValue(product, window.CENTRE_META_KEYS[`descripcio_programa_${i}`]) || '');
+                    }
+                }
+
+                setRichContent(form.querySelector('[name="preus"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.preus) || '');
+                setRichContent(form.querySelector('[name="inclou"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.inclou) || '');
+                setRichContent(form.querySelector('[name="altres_activitats"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.altres_activitats) || '');
+                setRichContent(form.querySelector('[name="cases_on_es_pot_fer"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.cases_on_es_pot_fer) || '');
+                setRichContent(form.querySelector('[name="altres_propostes"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.altres_propostes) || '');
+
+                const firstImage = (product.images || [])[0] || {};
+                form.querySelector('[name="existing_image_id"]').value = firstImage.id || '';
+                form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
+                form.querySelector('[name="featured_url"]').value = firstImage.src || '';
+
+                openModal(modal);
+            });
+        });
+    };
+
+    initActivitatEditor();
+    initCentreEditor();
 });
