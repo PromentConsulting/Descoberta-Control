@@ -12,7 +12,86 @@ if ($response['success']) {
     $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+function product_by_id(array $products, int $id): ?array {
+    foreach ($products as $product) {
+        if ((int)($product['id'] ?? 0) === $id) {
+            return $product;
+        }
+    }
+    return null;
+}
+
+function build_payload_with_status(array $product, string $status): array {
+    $payload = [
+        'status' => $status,
+        'name' => $product['name'] ?? '',
+        'description' => $product['description'] ?? '',
+    ];
+
+    if (!empty($product['short_description'])) {
+        $payload['short_description'] = $product['short_description'];
+    }
+
+    if (!empty($product['categories'])) {
+        $categories = array_values(array_filter(array_map(function ($cat) {
+            if (!empty($cat['id'])) {
+                return ['id' => $cat['id']];
+            }
+            return null;
+        }, $product['categories'])));
+        if ($categories) {
+            $payload['categories'] = $categories;
+        }
+    }
+
+    if (!empty($product['images'])) {
+        $payload['images'] = array_values(array_filter(array_map(function ($img) {
+            $data = [];
+            if (!empty($img['id'])) {
+                $data['id'] = $img['id'];
+            }
+            if (!empty($img['src'])) {
+                $data['src'] = $img['src'];
+            }
+            return $data ? $data : null;
+        }, $product['images'])));
+    }
+
+    if (!empty($product['meta_data'])) {
+        $payload['meta_data'] = array_values(array_filter(array_map(function ($meta) {
+            return isset($meta['key']) ? ['key' => $meta['key'], 'value' => $meta['value'] ?? ''] : null;
+        }, $product['meta_data'])));
+    }
+
+    return $payload;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') === 'toggle_status') {
+    $productId = (int)($_POST['product_id'] ?? 0);
+    $targetStatus = $_POST['target_status'] === 'publish' ? 'publish' : 'draft';
+    $product = product_by_id($products, $productId);
+
+    if (!$product) {
+        flash('error', 'No s\'ha trobat el producte.');
+        redirect('/centres_interes.php');
+    }
+
+    $payload = build_payload_with_status($product, $targetStatus);
+    $update = woo_update_product('descoberta', $productId, $payload);
+
+    if ($update['success']) {
+        $message = $targetStatus === 'publish'
+            ? 'Producte actualitzat i publicat de nou'
+            : 'Producte passat a borrador';
+        flash('success', $message);
+    } else {
+        flash('error', 'No s\'ha pogut actualitzar l\'estat: ' . ($update['error'] ?? json_encode($update['data'])));
+    }
+
+    redirect('/centres_interes.php');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $featuredUrl = trim($_POST['featured_url'] ?? '');
@@ -86,19 +165,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th>Títol</th>
-                    <th>Estat</th>
+                    <th class="sortable" data-sort-key="title">Títol <i class="fa fa-sort"></i></th>
+                    <th class="sortable" data-sort-key="status">Estat <i class="fa fa-sort"></i></th>
                     <th>Imatge</th>
-                    <th>Actualitzat</th>
+                    <th class="sortable" data-sort-key="updated">Actualitzat <i class="fa fa-sort"></i></th>
+                    <th>Accions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($products as $product): ?>
+                    <?php $dateInfo = formatted_product_date($product['date_modified'] ?? ''); ?>
+                    <?php $statusText = status_label($product['status'] ?? ''); ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($product['name'] ?? ''); ?></td>
-                        <td><?php echo htmlspecialchars($product['status'] ?? ''); ?></td>
+                        <td data-col="title" data-sort-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>"><?php echo htmlspecialchars($product['name'] ?? ''); ?></td>
+                        <td data-col="status" data-sort-value="<?php echo htmlspecialchars($statusText); ?>"><?php echo htmlspecialchars($statusText); ?></td>
                         <td><?php if (!empty($product['images'][0]['src'])): ?><img class="thumb" src="<?php echo htmlspecialchars($product['images'][0]['src']); ?>" alt="thumb"><?php endif; ?></td>
-                        <td><?php echo htmlspecialchars($product['date_modified'] ?? ''); ?></td>
+                        <td data-col="updated" data-sort-value="<?php echo htmlspecialchars((string)$dateInfo['timestamp']); ?>"><?php echo htmlspecialchars($dateInfo['display']); ?></td>
+                        <td class="actions-cell">
+                            <form method="POST" class="inline-form">
+                                <input type="hidden" name="product_action" value="toggle_status">
+                                <input type="hidden" name="product_id" value="<?php echo htmlspecialchars((string)($product['id'] ?? '')); ?>">
+                                <input type="hidden" name="target_status" value="<?php echo ($product['status'] ?? '') === 'publish' ? 'draft' : 'publish'; ?>">
+                                <?php if (($product['status'] ?? '') === 'publish'): ?>
+                                    <button type="submit" class="icon-btn danger" title="Passar a borrador"><i class="fa fa-trash"></i></button>
+                                <?php else: ?>
+                                    <button type="submit" class="icon-btn success" title="Publicar de nou"><i class="fa fa-arrow-up"></i></button>
+                                <?php endif; ?>
+                            </form>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -119,7 +213,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="text" name="title" required>
 
                     <label>Descripció</label>
-                    <textarea name="description" rows="4" required></textarea>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                        <textarea name="description" class="rich" rows="4" required></textarea>
+                    </div>
 
                     <label>Competències</label>
                     <div class="rich-wrapper" data-rich-editor>

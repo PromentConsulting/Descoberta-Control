@@ -23,3 +23,20 @@ function flash(?string $type = null, ?string $message = null): array {
 function view_active(string $path): string {
     return strpos($_SERVER['REQUEST_URI'], $path) !== false ? 'active' : '';
 }
+
+function status_label(?string $status): string {
+    return strtolower((string)$status) === 'publish' ? 'Visible' : 'No Visible';
+}
+
+function formatted_product_date(?string $dateString): array {
+    try {
+        $dt = new DateTime($dateString ?: 'now');
+        $dt->modify('+1 hour');
+        return [
+            'display' => $dt->format('d-m-Y H:i'),
+            'timestamp' => $dt->getTimestamp(),
+        ];
+    } catch (Exception $e) {
+        return ['display' => '', 'timestamp' => 0];
+    }
+}
