@@ -55,7 +55,7 @@ $SITE_APIS = [
         'consumer_key' => getenv('CANFOIX_CONSUMER_KEY') ?: 'ck_c83e9caa7ea38cd854991226d36715441e2389d7',
         'consumer_secret' => getenv('CANFOIX_CONSUMER_SECRET') ?: 'cs_e500b4f26aa1e16b10a7f852ae9cca06f2623850',
         'basic_user' => getenv('CANFOIX_BASIC_USER') ?: 'ertaweb',
-        'basic_password' => getenv('CANFOIX_BASIC_PASSWORD') ?: 'ffpc SpYp 2Tqj TLMf h4o6 DyZI',
+        'basic_password' => getenv('CANFOIX_BASIC_PASSWORD') ?: 'oXmq F6q8 pTN3 Mwa1 7WD5 up7s',
         'categories' => [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
@@ -86,7 +86,7 @@ $CASE_SPECIAL_MAPPING = [
 
 $ACF_FIELD_KEYS = [
     'activitats' => [
-        'cicles' => 'cicles',
+        'cicles' => 'cicles-filtro',
         'categoria' => 'categoria',
         'continguts' => 'continguts',
         'programa' => 'programa',
@@ -109,8 +109,8 @@ $ACF_FIELD_KEYS = [
         'preus' => 'preus',
         'inclou' => 'inclou',
         'altres_activitats' => 'altres_activitats',
-        'cases_on_es_pot_fer' => 'cases_on_es_pot_fer',
-        'altres_propostes' => 'altres_propostes',
+        'cases_on_es_pot_fer' => 'cases_on_es_pot_fer_el_centre_dinteres',
+        'altres_propostes' => 'altres_propostes_semblants',
     ],
     'url' => 'url',
 ];
