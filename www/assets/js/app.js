@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
-                form.querySelector('[name="description"]').value = product.description || '';
+                setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
 
                 const ciclesVal = metaValue(product, window.ACTIVITAT_META_KEYS.cicles) || [];
                 const categoriaVal = metaValue(product, window.ACTIVITAT_META_KEYS.categoria) || [];
