@@ -343,7 +343,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <input type="text" name="title" required>
 
                     <label>Descripció</label>
-                    <textarea name="description" rows="4" required></textarea>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                        <textarea name="description" class="rich" rows="4" required></textarea>
+                    </div>
 
                     <div class="two-columns">
                         <div>
@@ -450,7 +461,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <input type="text" name="title" required>
 
                     <label>Descripció</label>
-                    <textarea name="description" rows="4" required></textarea>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                        <textarea name="description" class="rich" rows="4" required></textarea>
+                    </div>
 
                     <div class="two-columns">
                         <div>
