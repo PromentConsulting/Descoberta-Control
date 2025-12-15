@@ -308,6 +308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? (int)$getMeta('places_adaptades'))],
             ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal ?: (string)$getMeta('wifi')],
             ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
+            ['key' => $caseKeys['preus'] ?? 'preus', 'value' => trim($_POST['preus'] ?? (string)$getMeta('preus'))],
             ['key' => $caseKeys['google_maps'] ?? 'google_maps', 'value' => trim($_POST['google_maps'] ?? (string)$getMeta('google_maps'))],
         ];
 
@@ -371,6 +372,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? 0)],
             ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal],
             ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
+            ['key' => $caseKeys['preus'] ?? 'preus', 'value' => trim($_POST['preus'] ?? '')],
             ['key' => $caseKeys['google_maps'] ?? 'google_maps', 'value' => trim($_POST['google_maps'] ?? '')],
         ];
 
@@ -668,6 +670,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'places_adaptades' => (int)meta_value($case, $caseKeys['places_adaptades'] ?? ''),
                         'wifi' => normalize_yes_no(meta_value($case, $caseKeys['wifi'] ?? '')),
                         'normativa' => (string)meta_value($case, $caseKeys['normativa'] ?? ''),
+                        'preus' => (string)meta_value($case, $caseKeys['preus'] ?? ''),
                         'google_maps' => (string)meta_value($case, $caseKeys['google_maps'] ?? ''),
                     ];
 
@@ -848,6 +851,20 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         </div>
                     </div>
 
+                    <label>Preus</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Preus"></div>
+                        <textarea name="preus" class="rich" rows="3"></textarea>
+                    </div>
+
                     <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
                     <p class="hint">O enganxa una URL directa</p>
@@ -989,6 +1006,20 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                             <label>Google Maps</label>
                             <input type="text" name="google_maps" placeholder="Enllaç o embed">
                         </div>
+                    </div>
+
+                    <label>Preus</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Preus"></div>
+                        <textarea name="preus" class="rich" rows="3"></textarea>
                     </div>
 
                     <label>Imatge destacada</label>
