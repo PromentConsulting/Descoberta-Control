@@ -328,6 +328,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="title"]').value = product.name || '';
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
+
+                const ciclesVal = metaValue(product, window.CENTRE_META_KEYS.cicles) || [];
+                const categoriaVal = metaValue(product, window.CENTRE_META_KEYS.categoria) || [];
+
+                setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
+                setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
                 setRichContent(form.querySelector('[name="competencies"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.competencies) || '');
                 setRichContent(form.querySelector('[name="metodologia"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.metodologia) || '');
 
@@ -411,6 +417,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const normativaVal = metaFromProduct(product, 'normativa') || '';
                 form.querySelector('[name="existing_normativa"]').value = normativaVal;
                 setNormativaText(normativaVal);
+
+                const firstImage = (product.images || [])[0] || {};
+                form.querySelector('[name="existing_image_id"]').value = firstImage.id || '';
+                form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
+                form.querySelector('[name="featured_url"]').value = firstImage.src || '';
 
                 openModal(modal);
             });
