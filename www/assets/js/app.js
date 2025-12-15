@@ -398,6 +398,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
                 setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
+                setRichContent(form.querySelector('[name="preus"]').closest('[data-rich-editor]'), metaFromProduct(product, 'preus') || '');
 
                 form.querySelector('[name="places"]').value = metaFromProduct(product, 'places') || '';
                 form.querySelector('[name="regims_admessos"]').value = metaFromProduct(product, 'regims_admessos') || '';

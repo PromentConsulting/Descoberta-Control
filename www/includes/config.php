@@ -99,6 +99,7 @@ $ACF_FIELD_KEYS = [
         'places_adaptades' => 'places_adptades',
         'wifi' => 'wifi',
         'normativa' => 'normativa_de_la_casa',
+        'preus' => 'preus',
         'google_maps' => 'google_maps',
     ],
     'activitats' => [
