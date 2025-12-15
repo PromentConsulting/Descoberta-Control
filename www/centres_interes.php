@@ -133,6 +133,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
     $status = ($_POST['status'] ?? '') === 'publish' ? 'publish' : 'draft';
     $featuredUrl = trim($_POST['featured_url'] ?? '');
 
+    $cicles = $_POST['cicles'] ?? [];
+    if (!is_array($cicles)) {
+        $cicles = [$cicles];
+    }
+    $cicles = array_values(array_filter(array_map('trim', $cicles)));
+
+    $categoria = $_POST['categoria'] ?? [];
+    if (!is_array($categoria)) {
+        $categoria = [$categoria];
+    }
+    $categoria = array_values(array_filter(array_map('trim', $categoria)));
+
     $payload = [
         'name' => $title,
         'status' => $status,
@@ -141,6 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         'meta_data' => [
             ['key' => $ACF_FIELD_KEYS['centres']['competencies'], 'value' => trim($_POST['competencies'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['competencies']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['metodologia'], 'value' => trim($_POST['metodologia'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['metodologia']) ?? ''))],
+            ['key' => $ACF_FIELD_KEYS['centres']['cicles'], 'value' => $cicles],
+            ['key' => $ACF_FIELD_KEYS['centres']['categoria'], 'value' => $categoria],
             ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_1'], 'value' => trim($_POST['titol_programa_1'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['titol_programa_1']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_1'], 'value' => trim($_POST['descripcio_programa_1'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['descripcio_programa_1']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_2'], 'value' => trim($_POST['titol_programa_2'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['titol_programa_2']) ?? ''))],
@@ -200,6 +214,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $featuredUrl = trim($_POST['featured_url'] ?? '');
+
+    $cicles = $_POST['cicles'] ?? [];
+    if (!is_array($cicles)) {
+        $cicles = [$cicles];
+    }
+    $cicles = array_values(array_filter(array_map('trim', $cicles)));
+
+    $categoria = $_POST['categoria'] ?? [];
+    if (!is_array($categoria)) {
+        $categoria = [$categoria];
+    }
+    $categoria = array_values(array_filter(array_map('trim', $categoria)));
     $payload = [
         'name' => $title,
         'status' => 'publish',
@@ -208,6 +234,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         'meta_data' => [
             ['key' => $ACF_FIELD_KEYS['centres']['competencies'], 'value' => trim($_POST['competencies'] ?? '')],
             ['key' => $ACF_FIELD_KEYS['centres']['metodologia'], 'value' => trim($_POST['metodologia'] ?? '')],
+            ['key' => $ACF_FIELD_KEYS['centres']['cicles'], 'value' => $cicles],
+            ['key' => $ACF_FIELD_KEYS['centres']['categoria'], 'value' => $categoria],
             ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_1'], 'value' => trim($_POST['titol_programa_1'] ?? '')],
             ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_1'], 'value' => trim($_POST['descripcio_programa_1'] ?? '')],
             ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_2'], 'value' => trim($_POST['titol_programa_2'] ?? '')],
@@ -340,6 +368,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         </div>
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
                         <textarea name="description" class="rich" rows="4" required></textarea>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Cicles</label>
+                            <select name="cicles[]" multiple required>
+                                <?php foreach ($CICLES_OPTIONS as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="hint">Selecciona un o més cicles</p>
+                        </div>
+                        <div>
+                            <label>Categoria</label>
+                            <select name="categoria[]" multiple required>
+                                <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="hint">Selecciona una o més categories</p>
+                        </div>
                     </div>
 
                     <label>Competències</label>
@@ -496,6 +545,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         </div>
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
                         <textarea name="description" class="rich" rows="4" required></textarea>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Cicles</label>
+                            <select name="cicles[]" multiple required>
+                                <?php foreach ($CICLES_OPTIONS as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="hint">Selecciona un o més cicles</p>
+                        </div>
+                        <div>
+                            <label>Categoria</label>
+                            <select name="categoria[]" multiple required>
+                                <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
+                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="hint">Selecciona una o més categories</p>
+                        </div>
                     </div>
 
                     <label>Competències</label>

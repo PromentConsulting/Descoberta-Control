@@ -67,6 +67,80 @@ function find_product_by_meta_value(array $products, string $key, string $value)
     return null;
 }
 
+function upload_gallery_files(string $fieldName): array {
+    $files = $_FILES[$fieldName] ?? null;
+    if (!$files || empty($files['tmp_name']) || !is_array($files['tmp_name'])) {
+        return [];
+    }
+
+    $uploads = [];
+    $count = count($files['tmp_name']);
+    for ($i = 0; $i < $count; $i++) {
+        if (empty($files['tmp_name'][$i])) {
+            continue;
+        }
+
+        $file = [
+            'name' => $files['name'][$i] ?? '',
+            'type' => $files['type'][$i] ?? '',
+            'tmp_name' => $files['tmp_name'][$i],
+            'error' => $files['error'][$i] ?? 0,
+            'size' => $files['size'][$i] ?? 0,
+        ];
+
+        $upload = wp_upload_media('descoberta', $file);
+        if ($upload['success'] && isset($upload['data']['id'])) {
+            $uploads[] = ['id' => $upload['data']['id']];
+        } else {
+            flash('error', 'No s\'ha pogut pujar una imatge de la galeria: ' . ($upload['error'] ?? 'Error desconegut'));
+        }
+    }
+
+    return $uploads;
+}
+
+function prepare_case_images(array $existingImages, string $featuredUrl, int $existingImageId, string $existingImageSrc): array {
+    $images = $existingImages;
+    $thumbnailId = null;
+    $changed = false;
+
+    if (!empty($_FILES['featured_file']['tmp_name'])) {
+        $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
+        if ($upload['success'] && isset($upload['data']['id'])) {
+            $images[0] = ['id' => $upload['data']['id']];
+            $thumbnailId = $upload['data']['id'];
+            $changed = true;
+        } else {
+            flash('error', 'No s\'ha pogut pujar la imatge destacada: ' . ($upload['error'] ?? 'Error desconegut'));
+        }
+    } elseif ($featuredUrl !== '') {
+        $images[0] = ['src' => $featuredUrl];
+        $changed = true;
+    } elseif ($existingImageId) {
+        $images[0] = ['id' => $existingImageId];
+        $thumbnailId = $existingImageId;
+        $changed = true;
+    } elseif ($existingImageSrc !== '') {
+        $images[0] = ['src' => $existingImageSrc];
+        $changed = true;
+    }
+
+    $galleryUploads = upload_gallery_files('gallery_files');
+    if ($galleryUploads) {
+        $images = array_merge($images, $galleryUploads);
+        $changed = true;
+        if (!$thumbnailId && isset($galleryUploads[0]['id'])) {
+            $thumbnailId = $galleryUploads[0]['id'];
+        }
+    }
+
+    return [
+        'images' => array_values($images),
+        'thumbnail_id' => $thumbnailId,
+        'changed' => $changed,
+    ];
+}
+
 function build_meta_payload(array $sourceProduct, array $allowedKeys, string $urlKey): array {
     $metaMap = [$urlKey => $sourceProduct['permalink'] ?? ''];
 
@@ -199,6 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($_POST['title'] ?? ($currentCase['name'] ?? ''));
         $description = trim($_POST['description'] ?? ($currentCase['description'] ?? ''));
         $shortDescription = trim($_POST['short_description'] ?? ($currentCase['short_description'] ?? ''));
+        $featuredUrl = trim($_POST['featured_url'] ?? '');
+        $existingImageId = (int)($_POST['existing_image_id'] ?? 0);
+        $existingImageSrc = trim($_POST['existing_image_src'] ?? '');
 
         $getMeta = function (string $key) use ($currentCase, $caseKeys) {
             return meta_value($currentCase, $caseKeys[$key] ?? '') ?? '';
@@ -241,12 +318,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'meta_data' => $metaPayload,
         ];
 
+        $imagesResult = prepare_case_images($currentCase['images'] ?? [], $featuredUrl, $existingImageId, $existingImageSrc);
+        if ($imagesResult['changed']) {
+            $payload['images'] = $imagesResult['images'];
+            if ($imagesResult['thumbnail_id']) {
+                $payload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
+            }
+        }
+
         $update = woo_update_product('descoberta', $productId, $payload);
 
         if ($update['success']) {
             flash('success', 'Casa actualitzada correctament');
         } else {
             flash('error', 'No s\'ha pogut actualitzar la casa: ' . ($update['error'] ?? json_encode($update['data'])));
+        }
+
+        redirect('/editar_cases.php');
+    } elseif ($action === 'create_case') {
+        global $ACF_FIELD_KEYS;
+        $caseKeys = $ACF_FIELD_KEYS['cases'] ?? [];
+
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $shortDescription = trim($_POST['short_description'] ?? '');
+        $featuredUrl = trim($_POST['featured_url'] ?? '');
+
+        $normativaVal = '';
+        if (!empty($_FILES['normativa']['tmp_name'])) {
+            $upload = wp_upload_media('descoberta', $_FILES['normativa']);
+            if ($upload['success'] && isset($upload['data']['source_url'])) {
+                $normativaVal = $upload['data']['source_url'];
+            } else {
+                flash('error', 'No s\'ha pogut pujar la normativa: ' . ($upload['error'] ?? 'Error desconegut'));
+            }
+        }
+
+        $piscinaVal = normalize_yes_no($_POST['piscina'] ?? '');
+        $wifiVal = normalize_yes_no($_POST['wifi'] ?? '');
+
+        $metaPayload = [
+            ['key' => $caseKeys['places'] ?? 'places', 'value' => (int)($_POST['places'] ?? 0)],
+            ['key' => $caseKeys['regims_admessos'] ?? 'Regims_admessos', 'value' => trim($_POST['regims_admessos'] ?? '')],
+            ['key' => $caseKeys['exclusivitat'] ?? 'exclusivitat', 'value' => (int)($_POST['exclusivitat'] ?? 0)],
+            ['key' => $caseKeys['habitacions'] ?? 'habitacions', 'value' => trim($_POST['habitacions'] ?? '')],
+            ['key' => $caseKeys['provincia'] ?? 'provincia', 'value' => trim($_POST['provincia'] ?? '')],
+            ['key' => $caseKeys['comarca'] ?? 'comarca', 'value' => trim($_POST['comarca'] ?? '')],
+            ['key' => $caseKeys['calefaccio'] ?? 'calefaccio', 'value' => trim($_POST['calefaccio'] ?? '')],
+            ['key' => $caseKeys['sales_activitats'] ?? 'sales_activitats', 'value' => trim($_POST['sales_activitats'] ?? '')],
+            ['key' => $caseKeys['exteriors'] ?? 'exteriors', 'value' => trim($_POST['exteriors'] ?? '')],
+            ['key' => $caseKeys['piscina'] ?? 'piscina', 'value' => $piscinaVal],
+            ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? 0)],
+            ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal],
+            ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
+            ['key' => $caseKeys['google_maps'] ?? 'google_maps', 'value' => trim($_POST['google_maps'] ?? '')],
+        ];
+
+        $payload = [
+            'name' => $title,
+            'status' => 'publish',
+            'description' => $description,
+            'short_description' => $shortDescription,
+            'categories' => [],
+            'meta_data' => $metaPayload,
+        ];
+
+        $imagesResult = prepare_case_images([], $featuredUrl, 0, '');
+        if ($imagesResult['changed']) {
+            $payload['images'] = $imagesResult['images'];
+            if ($imagesResult['thumbnail_id']) {
+                $payload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
+            }
+        }
+
+        $catId = category_id('descoberta', 'cases-de-colonies');
+        if ($catId) {
+            $payload['categories'][] = ['id' => $catId];
+        }
+
+        $create = woo_create_product('descoberta', $payload);
+
+        if ($create['success']) {
+            flash('success', 'Casa creada correctament');
+        } else {
+            flash('error', 'No s\'ha pogut crear la casa: ' . ($create['error'] ?? json_encode($create['data'])));
         }
 
         redirect('/editar_cases.php');
@@ -523,6 +678,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'short_description' => $case['short_description'] ?? '',
                         'meta' => $caseMeta,
                         'meta_data' => $case['meta_data'] ?? [],
+                        'images' => $case['images'] ?? [],
                     ];
                 ?>
                     <tr class="<?php echo $highlight ? 'highlight' : ''; ?>">
@@ -580,6 +736,8 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                     <input type="hidden" name="product_action" value="edit_case">
                     <input type="hidden" name="product_id">
                     <input type="hidden" name="existing_normativa">
+                    <input type="hidden" name="existing_image_id">
+                    <input type="hidden" name="existing_image_src">
 
                     <label>Títol</label>
                     <input type="text" name="title" required>
@@ -690,12 +848,163 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         </div>
                     </div>
 
+                    <label>Imatge destacada</label>
+                    <input type="file" name="featured_file" accept="image/*">
+                    <p class="hint">O enganxa una URL directa</p>
+                    <input type="url" name="featured_url" placeholder="https://...">
+
+                    <label>Galeria d'imatges</label>
+                    <input type="file" name="gallery_files[]" accept="image/*" multiple>
+                    <p class="hint">Pots seleccionar diverses imatges</p>
+
                     <label>Normativa de la casa</label>
                     <input type="file" name="normativa" accept="application/pdf,.doc,.docx,.png,.jpg,.jpeg">
                     <p class="hint" data-current-normativa>No hi ha cap fitxer pujat.</p>
 
                     <div class="actions-row">
                         <button type="submit" class="btn">Desar canvis</button>
+                        <button type="button" class="btn ghost modal-close">Cancel·lar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" type="button" data-open="modalCreateCase">+</button>
+
+    <div class="modal-overlay" id="modalCreateCase">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2>Crear casa</h2>
+                <button class="modal-close" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="form-card" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="product_action" value="create_case">
+
+                    <label>Títol</label>
+                    <input type="text" name="title" required>
+
+                    <label>Descripció</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                        <textarea name="description" class="rich" rows="4"></textarea>
+                    </div>
+
+                    <label>Descripció curta del producte</label>
+                    <div class="rich-wrapper" data-rich-editor>
+                        <div class="rich-toolbar">
+                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        </div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció curta"></div>
+                        <textarea name="short_description" class="rich" rows="3"></textarea>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Places</label>
+                            <input type="number" name="places" min="0" step="1">
+                        </div>
+                        <div>
+                            <label>Règims admessos</label>
+                            <input type="text" name="regims_admessos" placeholder="Ex: -A-DE-MP-">
+                            <p class="hint">Separar cada règim amb guions com a WooCommerce.</p>
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Exclusivitat a partir de</label>
+                            <input type="number" name="exclusivitat" min="0" step="1">
+                        </div>
+                        <div>
+                            <label>Habitacions</label>
+                            <input type="text" name="habitacions">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Província</label>
+                            <input type="text" name="provincia">
+                        </div>
+                        <div>
+                            <label>Comarca</label>
+                            <input type="text" name="comarca">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Calefacció</label>
+                            <input type="text" name="calefaccio">
+                        </div>
+                        <div>
+                            <label>Sales activitats</label>
+                            <input type="text" name="sales_activitats">
+                        </div>
+                    </div>
+
+                    <label>Exteriors</label>
+                    <input type="text" name="exteriors">
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Piscina</label>
+                            <select name="piscina">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Places adaptades (nº)</label>
+                            <input type="number" name="places_adaptades" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>WIFI</label>
+                            <select name="wifi">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Google Maps</label>
+                            <input type="text" name="google_maps" placeholder="Enllaç o embed">
+                        </div>
+                    </div>
+
+                    <label>Imatge destacada</label>
+                    <input type="file" name="featured_file" accept="image/*">
+                    <p class="hint">O enganxa una URL directa</p>
+                    <input type="url" name="featured_url" placeholder="https://...">
+
+                    <label>Galeria d'imatges</label>
+                    <input type="file" name="gallery_files[]" accept="image/*" multiple>
+                    <p class="hint">Pots seleccionar diverses imatges</p>
+
+                    <label>Normativa de la casa</label>
+                    <input type="file" name="normativa" accept="application/pdf,.doc,.docx,.png,.jpg,.jpeg">
+
+                    <div class="actions-row">
+                        <button type="submit" class="btn">Crear casa</button>
                         <button type="button" class="btn ghost modal-close">Cancel·lar</button>
                     </div>
                 </form>

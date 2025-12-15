@@ -377,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         </div>
                     </div>
 
-                    <label>Continguts</label>
+                    <label>Competències i metodologia</label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -387,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                             <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
                             <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
                         </div>
-                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Continguts"></div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències i metodologia"></div>
                         <textarea name="continguts" class="rich" rows="4"></textarea>
                     </div>
 
@@ -495,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         </div>
                     </div>
 
-                    <label>Continguts</label>
+                    <label>Competències i metodologia</label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -505,7 +505,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                             <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
                             <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
                         </div>
-                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Continguts"></div>
+                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències i metodologia"></div>
                         <textarea name="continguts" class="rich" rows="4"></textarea>
                     </div>
 
