@@ -937,6 +937,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    position: relative;
 }
 
 .rich-toolbar {
@@ -971,4 +972,74 @@ body {
 
 .rich-wrapper textarea.rich {
     display: none;
+}
+
+.program-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.program-section:last-of-type {
+    border-bottom: none;
+}
+
+.grid-picker {
+    position: absolute;
+    top: 42px;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: 220px;
+    z-index: 5;
+    display: none;
+    gap: 10px;
+}
+
+.grid-picker.open {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.grid-picker-cell {
+    height: 28px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.grid-picker-cell.active {
+    background: #e0e7ff;
+    border-color: #4f46e5;
+}
+
+.grid-picker-label {
+    font-size: 0.9rem;
+    color: #111827;
+    text-align: right;
+}
+
+.rich-grid {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.rich-grid td {
+    border: 1px solid #111827;
+    min-height: 42px;
+    padding: 8px;
 }
