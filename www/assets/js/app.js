@@ -44,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const editor = wrapper.querySelector('.rich-editor');
         const toolbarButtons = wrapper.querySelectorAll('.rich-toolbar button');
 
+        let selectionRange = null;
+
         syncRichWrapper(wrapper);
 
         const syncToTextarea = () => {
@@ -52,10 +54,31 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        const saveSelection = () => {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                selectionRange = selection.getRangeAt(0);
+            }
+        };
+
+        const restoreSelection = () => {
+            if (!selectionRange) return;
+            const selection = window.getSelection();
+            if (!selection) return;
+            selection.removeAllRanges();
+            selection.addRange(selectionRange);
+        };
+
         editor?.addEventListener('input', syncToTextarea);
+        editor?.addEventListener('keyup', saveSelection);
+        editor?.addEventListener('mouseup', saveSelection);
+        editor?.addEventListener('mouseleave', saveSelection);
+        editor?.addEventListener('blur', saveSelection);
 
         const insertGrid = (rows, cols) => {
             if (!rows || !cols) return;
+            editor?.focus();
+            restoreSelection();
             const buildRow = (cells) => `<tr>${cells}</tr>`;
             const cell = '<td>&nbsp;</td>';
             const tableBody = Array.from({ length: rows })
@@ -148,6 +171,8 @@ document.addEventListener("DOMContentLoaded", () => {
             btn.addEventListener('click', () => {
                 const command = btn.dataset.command;
                 const value = btn.dataset.value || '';
+                editor?.focus();
+                restoreSelection();
                 if (command === 'createLink') {
                     const url = prompt('Introdueix l\'enllaç');
                     if (url) {
