@@ -54,7 +54,97 @@ document.addEventListener("DOMContentLoaded", () => {
 
         editor?.addEventListener('input', syncToTextarea);
 
+        const insertGrid = (rows, cols) => {
+            if (!rows || !cols) return;
+            const buildRow = (cells) => `<tr>${cells}</tr>`;
+            const cell = '<td>&nbsp;</td>';
+            const tableBody = Array.from({ length: rows })
+                .map(() => buildRow(cell.repeat(cols)))
+                .join('');
+            const html = `<table class="rich-grid"><tbody>${tableBody}</tbody></table><p></p>`;
+            document.execCommand('insertHTML', false, html);
+            syncToTextarea();
+        };
+
+        const initGridPicker = (btn) => {
+            let panel = null;
+            let label = null;
+            let grid = null;
+
+            const closePanel = () => panel?.classList.remove('open');
+
+            const updateActive = (rows, cols) => {
+                if (!grid || !label) return;
+                label.textContent = `${rows} x ${cols}`;
+                grid.querySelectorAll('.grid-picker-cell').forEach(cell => {
+                    const r = Number(cell.dataset.rows || 0);
+                    const c = Number(cell.dataset.cols || 0);
+                    cell.classList.toggle('active', r <= rows && c <= cols);
+                });
+            };
+
+            const buildPanel = () => {
+                const picker = document.createElement('div');
+                picker.className = 'grid-picker';
+
+                const gridContainer = document.createElement('div');
+                gridContainer.className = 'grid-picker-grid';
+
+                for (let r = 1; r <= 5; r++) {
+                    for (let c = 1; c <= 5; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-picker-cell';
+                        cell.dataset.rows = String(r);
+                        cell.dataset.cols = String(c);
+                        cell.addEventListener('mouseenter', () => updateActive(r, c));
+                        cell.addEventListener('click', () => {
+                            insertGrid(r, c);
+                            closePanel();
+                        });
+                        gridContainer.appendChild(cell);
+                    }
+                }
+
+                const pickerLabel = document.createElement('div');
+                pickerLabel.className = 'grid-picker-label';
+                pickerLabel.textContent = '0 x 0';
+
+                picker.appendChild(gridContainer);
+                picker.appendChild(pickerLabel);
+
+                wrapper.appendChild(picker);
+                panel = picker;
+                label = pickerLabel;
+                grid = gridContainer;
+            };
+
+            const togglePanel = () => {
+                if (!panel) buildPanel();
+                panel.classList.toggle('open');
+                if (panel.classList.contains('open')) {
+                    updateActive(0, 0);
+                }
+            };
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                togglePanel();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!panel || !panel.classList.contains('open')) return;
+                if (panel.contains(e.target) || e.target === btn) return;
+                closePanel();
+            });
+        };
+
         toolbarButtons.forEach(btn => {
+            if (btn.dataset.gridPicker !== undefined) {
+                initGridPicker(btn);
+                return;
+            }
+
             btn.addEventListener('click', () => {
                 const command = btn.dataset.command;
                 const value = btn.dataset.value || '';
