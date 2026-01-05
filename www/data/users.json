@@ -1,7 +1,7 @@
 {
     "admin": {
         "username": "admin",
-        "password_hash": "$2y$10$6ZtBvxd1hI8j7qIQonSlh.EszcpysgmAHc60MeaMulQdL8dKMZROS",
+        "password_hash": "$2y$12$KrAE8caxKOat30Zs.13EwuaBWx0jODTJXintJkEoKVLAhBy/iOLdy",
         "role": "admin"
     },
     "Descoberta": {
