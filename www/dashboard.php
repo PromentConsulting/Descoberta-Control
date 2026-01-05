@@ -3,11 +3,11 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
 $cards = [
-    ['key' => 'descoberta', 'title' => 'DESCOBERTA', 'url' => 'https://descobertaweb.promentconsulting.com/', 'highlight' => true],
-    ['key' => 'can-pere', 'title' => 'Can Pere', 'url' => 'https://canperedescoberta.promentconsulting.com/'],
-    ['key' => 'cal-mata', 'title' => 'Cal Mata', 'url' => 'https://escolesdescoberta.promentconsulting.com/'],
-    ['key' => 'can-foix', 'title' => 'Can Foix', 'url' => 'https://canfoixdescoberta.promentconsulting.com/'],
-    ['key' => 'el-ginebro', 'title' => 'El Ginebro', 'url' => 'https://elginebrodescoberta.promentconsulting.com/'],
+    ['key' => 'descoberta', 'title' => 'DESCOBERTA', 'url' => 'https://descoberta.cat/', 'highlight' => true],
+    ['key' => 'can-pere', 'title' => 'Can Pere', 'url' => 'https://canpere.cat/'],
+    ['key' => 'cal-mata', 'title' => 'Cal Mata', 'url' => 'https://calmata.cat/'],
+    ['key' => 'can-foix', 'title' => 'Can Foix', 'url' => 'https://canfoix.com/'],
+    ['key' => 'el-ginebro', 'title' => 'El Ginebro', 'url' => 'https://elginebro.cat/'],
 ];
 
 function site_stats(string $siteKey): array {

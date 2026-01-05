@@ -64,7 +64,7 @@ $SITE_APIS = [
     ],
     'el-ginebro' => [
         'name' => 'El Ginebró',
-        'base_url' => getenv('GINEBRO_BASE_URL') ?: 'https://elginebrodescoberta.promentconsulting.com/',
+        'base_url' => getenv('GINEBRO_BASE_URL') ?: 'https://elginebro.cat/',
         'consumer_key' => getenv('GINEBRO_CONSUMER_KEY') ?: 'ck_5af258f2656f422b586c8ee2a1d8865b42bc2181',
         'consumer_secret' => getenv('GINEBRO_CONSUMER_SECRET') ?: 'cs_2cd52e23f1f308576beb755f7866cf426830739a',
         'basic_user' => getenv('GINEBRO_BASIC_USER') ?: 'ertaweb',
