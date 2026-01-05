@@ -11,7 +11,7 @@ define('ADMIN_SEED', [
 $SITE_APIS = [
     'descoberta' => [
         'name' => 'Descoberta',
-        'base_url' => getenv('DESCOBERTA_BASE_URL') ?: 'https://descobertaweb.promentconsulting.com/',
+        'base_url' => getenv('DESCOBERTA_BASE_URL') ?: 'https://descoberta.cat/',
         'consumer_key' => getenv('DESCOBERTA_CONSUMER_KEY') ?: 'ck_41b062a032bc5ec02b8c63080a369dfa8d65bdc4',
         'consumer_secret' => getenv('DESCOBERTA_CONSUMER_SECRET') ?: 'cs_13c57c5475dfde80a3186078d3733d63412a01b9',
         'basic_user' => getenv('DESCOBERTA_BASIC_USER') ?: 'ertaweb',
@@ -25,7 +25,7 @@ $SITE_APIS = [
     ],
     'can-pere' => [
         'name' => 'Can Pere',
-        'base_url' => getenv('CANPERE_BASE_URL') ?: 'https://canperedescoberta.promentconsulting.com/',
+        'base_url' => getenv('CANPERE_BASE_URL') ?: 'https://canpere.cat/',
         'consumer_key' => getenv('CANPERE_CONSUMER_KEY') ?: 'ck_fc3c213be2780b0a2cc05895cace7871cc86f2a2',
         'consumer_secret' => getenv('CANPERE_CONSUMER_SECRET') ?: 'cs_f4097f7db551014de842d412a1e985d3375b47e2',
         'basic_user' => getenv('CANPERE_BASIC_USER') ?: 'ertaweb',
@@ -38,7 +38,7 @@ $SITE_APIS = [
     ],
     'cal-mata' => [
         'name' => 'Cal Mata',
-        'base_url' => getenv('CALMATA_BASE_URL') ?: 'https://escolesdescoberta.promentconsulting.com/',
+        'base_url' => getenv('CALMATA_BASE_URL') ?: 'https://calmata.cat/',
         'consumer_key' => getenv('CALMATA_CONSUMER_KEY') ?: 'ck_d2983c1a279c7589e9fbb5536c7e04ba3a732c34',
         'consumer_secret' => getenv('CALMATA_CONSUMER_SECRET') ?: 'cs_4fa3088f482fba1d73e74552158234faf886c1e0',
         'basic_user' => getenv('CALMATA_BASIC_USER') ?: 'ertaweb',
@@ -51,7 +51,7 @@ $SITE_APIS = [
     ],
     'can-foix' => [
         'name' => 'Can Foix',
-        'base_url' => getenv('CANFOIX_BASE_URL') ?: 'https://canfoixdescoberta.promentconsulting.com/',
+        'base_url' => getenv('CANFOIX_BASE_URL') ?: 'https://canfoix.com/',
         'consumer_key' => getenv('CANFOIX_CONSUMER_KEY') ?: 'ck_c83e9caa7ea38cd854991226d36715441e2389d7',
         'consumer_secret' => getenv('CANFOIX_CONSUMER_SECRET') ?: 'cs_e500b4f26aa1e16b10a7f852ae9cca06f2623850',
         'basic_user' => getenv('CANFOIX_BASIC_USER') ?: 'apidescoberta',

@@ -1,7 +1,12 @@
 {
     "admin": {
         "username": "admin",
-        "password_hash": "$2y$12$I.wlt8zsHHRS4hgAv1FLpOT48lDxEhmES2NMMIy.k2O8b/jo2/Evq",
+        "password_hash": "$2y$10$6ZtBvxd1hI8j7qIQonSlh.EszcpysgmAHc60MeaMulQdL8dKMZROS",
         "role": "admin"
+    },
+    "Descoberta": {
+        "username": "Descoberta",
+        "password_hash": "$2y$10$Z6eTSrV.Tdzal6bO9QS7vuycN\/7iXvSPFj9AitPpMg\/OesUD0bKsy",
+        "role": "user"
     }
 }
