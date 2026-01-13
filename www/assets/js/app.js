@@ -20,15 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    modals.forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-        });
-    });
-
     const richEditors = document.querySelectorAll('[data-rich-editor]');
     const syncRichWrapper = (wrapper, content = '') => {
         const textarea = wrapper.querySelector('textarea');
@@ -290,6 +281,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
+                const slugInput = form.querySelector('[name="slug"]');
+                if (slugInput) slugInput.value = product.slug || '';
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
 
                 const ciclesVal = metaValue(product, window.ACTIVITAT_META_KEYS.cicles) || [];
@@ -326,6 +319,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
+                const slugInput = form.querySelector('[name="slug"]');
+                if (slugInput) slugInput.value = product.slug || '';
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
 
@@ -371,6 +366,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!modal || !form) return;
 
         const normativaHint = modal.querySelector('[data-current-normativa]');
+        const galleryGrid = modal.querySelector('[data-gallery-grid]');
+        const removedGalleryInput = modal.querySelector('[name="removed_gallery_images"]');
+        let removedGallery = [];
 
         const setSelectValue = (select, value) => {
             if (!select) return;
@@ -389,12 +387,55 @@ document.addEventListener("DOMContentLoaded", () => {
             normativaHint.textContent = value ? `Fitxer actual: ${value}` : 'No hi ha cap fitxer pujat.';
         };
 
+        const renderGallery = (images) => {
+            if (!galleryGrid || !removedGalleryInput) return;
+            galleryGrid.innerHTML = '';
+            if (!images.length) {
+                const empty = document.createElement('p');
+                empty.className = 'gallery-empty';
+                empty.textContent = 'No hi ha imatges a la galeria.';
+                galleryGrid.appendChild(empty);
+                return;
+            }
+
+            images.forEach(image => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+
+                const img = document.createElement('img');
+                img.src = image.src || '';
+                img.alt = image.alt || 'Imatge de galeria';
+                item.appendChild(img);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'gallery-remove';
+                remove.innerHTML = '&times;';
+                remove.addEventListener('click', () => {
+                    removedGallery.push({
+                        id: image.id || null,
+                        src: image.src || ''
+                    });
+                    removedGalleryInput.value = JSON.stringify(removedGallery);
+                    item.remove();
+                    if (!galleryGrid.querySelector('.gallery-item')) {
+                        renderGallery([]);
+                    }
+                });
+                item.appendChild(remove);
+
+                galleryGrid.appendChild(item);
+            });
+        };
+
         document.querySelectorAll('[data-edit-case]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const product = JSON.parse(btn.dataset.editCase || '{}');
 
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="title"]').value = product.name || '';
+                const slugInput = form.querySelector('[name="slug"]');
+                if (slugInput) slugInput.value = product.slug || '';
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
                 setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
@@ -423,6 +464,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="existing_image_id"]').value = firstImage.id || '';
                 form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
                 form.querySelector('[name="featured_url"]').value = firstImage.src || '';
+
+                removedGallery = [];
+                if (removedGalleryInput) {
+                    removedGalleryInput.value = JSON.stringify(removedGallery);
+                }
+                const galleryImages = (product.images || []).slice(1);
+                renderGallery(galleryImages);
 
                 openModal(modal);
             });

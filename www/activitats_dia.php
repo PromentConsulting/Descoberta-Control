@@ -131,6 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
     $title = trim($_POST['title'] ?? ($product['name'] ?? ''));
     $description = trim($_POST['description'] ?? ($product['description'] ?? ''));
     $status = ($_POST['status'] ?? '') === 'publish' ? 'publish' : 'draft';
+    $slug = trim($_POST['slug'] ?? ($product['slug'] ?? ''));
+
+    if ($title === '' || $description === '') {
+        flash('error', 'Cal omplir el títol i la descripció.');
+        redirect('/activitats_dia.php');
+    }
 
     $cicles = $_POST['cicles'] ?? [];
     if (!is_array($cicles)) {
@@ -164,6 +170,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
             ['key' => $ACF_FIELD_KEYS['activitats']['inclou'], 'value' => $inclou],
         ],
     ];
+    if ($slug !== '') {
+        $payload['slug'] = $slug;
+    }
 
     $catId = category_id('descoberta', 'activitat-de-dia');
     if ($catId) {
@@ -205,6 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
+    $status = ($_POST['status'] ?? '') === 'draft' ? 'draft' : 'publish';
     $cicles = $_POST['cicles'] ?? [];
     if (!is_array($cicles)) {
         $cicles = [$cicles];
@@ -224,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
     $payload = [
         'name' => $title,
-        'status' => 'publish',
+        'status' => $status,
         'description' => $description,
         'categories' => [],
         'meta_data' => [
@@ -236,6 +246,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
             ['key' => $ACF_FIELD_KEYS['activitats']['inclou'], 'value' => $inclou],
         ],
     ];
+
+    if ($title === '' || $description === '') {
+        flash('error', 'Cal omplir el títol i la descripció.');
+        redirect('/activitats_dia.php');
+    }
 
     $catId = category_id('descoberta', 'activitat-de-dia');
     if ($catId) {
@@ -339,10 +354,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <input type="hidden" name="existing_image_id">
                     <input type="hidden" name="existing_image_src">
 
-                    <label>Títol del producte</label>
+                    <label>Títol del producte <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
-                    <label>Descripció</label>
+                    <label>URL</label>
+                    <input type="text" name="slug" placeholder="exemple-url">
+
+                    <label>Descripció <span class="required-asterisk">*</span></label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -457,10 +475,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
             </div>
             <div class="modal-body">
                 <form class="form-card" method="POST" enctype="multipart/form-data">
-                    <label>Títol del producte</label>
+                    <label>Títol del producte <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
-                    <label>Descripció</label>
+                    <label>Descripció <span class="required-asterisk">*</span></label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -555,6 +573,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <input type="file" name="featured_file" accept="image/*">
                     <p class="hint">O enganxa una URL directa</p>
                     <input type="url" name="featured_url" placeholder="https://...">
+
+                    <label>Estat</label>
+                    <select name="status">
+                        <option value="publish" selected>Publicar</option>
+                        <option value="draft">Borrador</option>
+                    </select>
 
                     <div class="modal-footer">
                         <button type="button" class="btn secondary modal-close">Cancel·lar</button>

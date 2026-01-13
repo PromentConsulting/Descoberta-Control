@@ -21,6 +21,7 @@ $SITE_APIS = [
             'activitat-de-dia' => 55,
             'centre-interes' => 56,
             'cases-de-colonies' => 28,
+            'preu' => null,
         ],
     ],
     'can-pere' => [
@@ -34,6 +35,7 @@ $SITE_APIS = [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
             'cases-de-colonies' => null,
+            'preu' => null,
         ],
     ],
     'cal-mata' => [
@@ -47,6 +49,7 @@ $SITE_APIS = [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
             'cases-de-colonies' => null,
+            'preu' => null,
         ],
     ],
     'can-foix' => [
@@ -60,6 +63,7 @@ $SITE_APIS = [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
             'cases-de-colonies' => null,
+            'preu' => null,
         ],
     ],
     'el-ginebro' => [
@@ -73,6 +77,7 @@ $SITE_APIS = [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
             'cases-de-colonies' => null,
+            'preu' => null,
         ],
     ],
 ];
