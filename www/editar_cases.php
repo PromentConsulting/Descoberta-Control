@@ -24,6 +24,22 @@ function meta_value(array $product, string $key) {
     return null;
 }
 
+function normalize_slug_input(string $slug): string {
+    $slug = trim($slug);
+    if ($slug === '') {
+        return '';
+    }
+    if (preg_match('/^https?:\\/\\//i', $slug)) {
+        $path = parse_url($slug, PHP_URL_PATH) ?? '';
+        $path = trim($path, '/');
+        if ($path !== '') {
+            $parts = explode('/', $path);
+            return end($parts) ?: '';
+        }
+    }
+    return $slug;
+}
+
 function has_category_slug(array $product, string $slug): bool {
     foreach ($product['categories'] ?? [] as $cat) {
         if (($cat['slug'] ?? '') === $slug) {
@@ -321,7 +337,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $featuredUrl = trim($_POST['featured_url'] ?? '');
         $existingImageId = (int)($_POST['existing_image_id'] ?? 0);
         $existingImageSrc = trim($_POST['existing_image_src'] ?? '');
-        $slug = trim($_POST['slug'] ?? ($currentCase['slug'] ?? ''));
+        $slug = normalize_slug_input($_POST['slug'] ?? ($currentCase['slug'] ?? ''));
 
         if ($title === '' || $description === '') {
             flash('error', 'Cal omplir el títol i la descripció.');

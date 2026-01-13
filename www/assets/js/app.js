@@ -1,5 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
     const modals = document.querySelectorAll('.modal-overlay');
+    modals.forEach(modal => {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        });
+    });
     const openModal = (modal) => {
         if (modal) {
             modal.classList.add('open');
@@ -261,6 +269,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return meta ? meta.value : '';
     };
 
+    const slugFromProduct = (product) => {
+        const permalink = product?.permalink || product?.link || '';
+        if (permalink) return permalink;
+        return product?.slug || '';
+    };
+
     const normalizeYesNo = (value) => {
         const val = String(value || '').toLowerCase();
         if (val === 'si' || val === 'sí') return 'Si';
@@ -282,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
                 const slugInput = form.querySelector('[name="slug"]');
-                if (slugInput) slugInput.value = product.slug || '';
+                if (slugInput) slugInput.value = slugFromProduct(product);
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
 
                 const ciclesVal = metaValue(product, window.ACTIVITAT_META_KEYS.cicles) || [];
@@ -320,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
                 const slugInput = form.querySelector('[name="slug"]');
-                if (slugInput) slugInput.value = product.slug || '';
+                if (slugInput) slugInput.value = slugFromProduct(product);
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
 
@@ -435,7 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="title"]').value = product.name || '';
                 const slugInput = form.querySelector('[name="slug"]');
-                if (slugInput) slugInput.value = product.slug || '';
+                if (slugInput) slugInput.value = slugFromProduct(product);
 
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
                 setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
