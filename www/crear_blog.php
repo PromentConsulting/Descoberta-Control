@@ -9,8 +9,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $content = $_POST['content'] ?? '';
     $featuredUrl = trim($_POST['featured_url'] ?? '');
-    $seoTitle = trim($_POST['seo_title'] ?? '');
-    $seoDescription = trim($_POST['seo_description'] ?? '');
 
     if (empty($selectedSites)) {
         flash('error', 'Tria almenys una web de destí.');
@@ -37,12 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $meta['featured_url'] = $featuredUrl;
         }
 
-        if ($seoTitle !== '') {
-            $meta['yoast_wpseo_title'] = $seoTitle;
-        }
-        if ($seoDescription !== '') {
-            $meta['yoast_wpseo_metadesc'] = $seoDescription;
-        }
         if ($meta) {
             $payload['meta'] = $meta;
         }
@@ -98,12 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="file" name="featured_file" accept="image/*">
         <p class="hint">O enganxa una URL directa</p>
         <input type="url" name="featured_url" placeholder="https://...">
-
-        <label>Títol SEO (Yoast)</label>
-        <input type="text" name="seo_title">
-
-        <label>Descripció SEO (Yoast)</label>
-        <textarea name="seo_description" rows="3"></textarea>
 
         <button class="btn large" type="submit">Publicar entrada</button>
     </form>
