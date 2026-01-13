@@ -793,6 +793,12 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'google_maps' => (string)meta_value($case, $caseKeys['google_maps'] ?? ''),
                     ];
 
+                    $preuDuplicate = find_product_by_meta_value($allProducts, PREU_LINK_META_KEY, (string)$case['id']);
+                    $preuLink = '';
+                    if ($preuDuplicate) {
+                        $preuLink = $preuDuplicate['permalink'] ?? ($preuDuplicate['link'] ?? '');
+                    }
+
                     $casePayload = [
                         'id' => $case['id'],
                         'name' => $case['name'] ?? '',
@@ -802,6 +808,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'meta' => $caseMeta,
                         'meta_data' => $case['meta_data'] ?? [],
                         'images' => $case['images'] ?? [],
+                        'preu_link' => $preuLink,
                     ];
                 ?>
                     <tr class="<?php echo $highlight ? 'highlight' : ''; ?>">
@@ -976,6 +983,11 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                     </div>
 
                     <label>Preus</label>
+                    <p class="hint" data-preu-link>
+                        Enllaç del preu:
+                        <a href="#" target="_blank" rel="noopener noreferrer" data-preu-link-url></a>
+                        <span data-preu-link-empty>No disponible</span>
+                    </p>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
