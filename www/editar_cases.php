@@ -320,7 +320,53 @@ function sync_related_content_to_site(
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['product_action'] ?? '';
 
-    if ($action === 'edit_case') {
+    if ($action === 'generate_preu_duplicate') {
+        $productId = (int)($_POST['product_id'] ?? 0);
+        $currentCase = find_product_by_id($cases, $productId);
+        if (!$currentCase) {
+            flash('error', 'No s\'ha pogut trobar la casa per generar els preus.');
+            redirect('/editar_cases.php');
+        }
+
+        $preuDuplicate = find_product_by_meta_value($allProducts, PREU_LINK_META_KEY, (string)$productId);
+        if ($preuDuplicate) {
+            flash('info', 'Ja existeix una casa de preus vinculada.');
+            redirect('/editar_cases.php');
+        }
+
+        $preuCatId = category_id('descoberta', 'preu');
+        if (!$preuCatId) {
+            flash('error', 'No s\'ha pogut trobar la categoria preu.');
+            redirect('/editar_cases.php');
+        }
+
+        $slug = $currentCase['slug'] ?? '';
+        $duplicatePayload = [
+            'name' => $currentCase['name'] ?? '',
+            'status' => $currentCase['status'] ?? 'publish',
+            'description' => $currentCase['description'] ?? '',
+            'short_description' => $currentCase['short_description'] ?? '',
+            'categories' => [['id' => $preuCatId]],
+            'meta_data' => $currentCase['meta_data'] ?? [],
+        ];
+        if (!empty($currentCase['images'])) {
+            $duplicatePayload['images'] = $currentCase['images'];
+        }
+        if ($slug !== '') {
+            $baseSlug = preg_replace('/-preus$/', '', $slug);
+            $duplicatePayload['slug'] = $baseSlug . '-preus';
+        }
+        $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$productId];
+
+        $duplicate = woo_create_product('descoberta', $duplicatePayload);
+        if ($duplicate['success']) {
+            flash('success', 'Casa duplicada de preus generada correctament');
+        } else {
+            flash('error', 'No s\'ha pogut crear la casa duplicada de preus: ' . ($duplicate['error'] ?? json_encode($duplicate['data'])));
+        }
+
+        redirect('/editar_cases.php');
+    } elseif ($action === 'edit_case') {
         global $ACF_FIELD_KEYS;
         $productId = (int)($_POST['product_id'] ?? 0);
         $currentCase = find_product_by_id($cases, $productId);
@@ -987,6 +1033,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         Enllaç del preu:
                         <a href="#" target="_blank" rel="noopener noreferrer" data-preu-link-url></a>
                         <span data-preu-link-empty>No disponible</span>
+                        <button type="button" class="btn secondary small" data-preu-link-generate>Generar</button>
                     </p>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
@@ -1023,6 +1070,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         <button type="submit" class="btn">Desar canvis</button>
                         <button type="button" class="btn ghost modal-close">Cancel·lar</button>
                     </div>
+                </form>
+                <form method="POST" data-preu-generate-form class="inline-form">
+                    <input type="hidden" name="product_action" value="generate_preu_duplicate">
+                    <input type="hidden" name="product_id" value="">
                 </form>
             </div>
         </div>
