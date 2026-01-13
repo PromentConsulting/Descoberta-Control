@@ -382,6 +382,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const normativaHint = modal.querySelector('[data-current-normativa]');
         const galleryGrid = modal.querySelector('[data-gallery-grid]');
         const removedGalleryInput = modal.querySelector('[name="removed_gallery_images"]');
+        const preuLinkWrapper = modal.querySelector('[data-preu-link]');
+        const preuLinkAnchor = preuLinkWrapper?.querySelector('[data-preu-link-url]');
+        const preuLinkEmpty = preuLinkWrapper?.querySelector('[data-preu-link-empty]');
         let removedGallery = [];
 
         const setSelectValue = (select, value) => {
@@ -442,6 +445,26 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         };
 
+        const setPreuLink = (url) => {
+            if (!preuLinkWrapper) return;
+            const trimmed = String(url || '').trim();
+            if (trimmed) {
+                if (preuLinkAnchor) {
+                    preuLinkAnchor.textContent = trimmed;
+                    preuLinkAnchor.href = trimmed;
+                    preuLinkAnchor.style.display = 'inline';
+                }
+                if (preuLinkEmpty) preuLinkEmpty.style.display = 'none';
+            } else {
+                if (preuLinkAnchor) {
+                    preuLinkAnchor.textContent = '';
+                    preuLinkAnchor.removeAttribute('href');
+                    preuLinkAnchor.style.display = 'none';
+                }
+                if (preuLinkEmpty) preuLinkEmpty.style.display = 'inline';
+            }
+        };
+
         document.querySelectorAll('[data-edit-case]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const product = JSON.parse(btn.dataset.editCase || '{}');
@@ -454,6 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
                 setRichContent(form.querySelector('[name="short_description"]').closest('[data-rich-editor]'), product.short_description || '');
                 setRichContent(form.querySelector('[name="preus"]').closest('[data-rich-editor]'), metaFromProduct(product, 'preus') || '');
+                setPreuLink(product.preu_link || '');
 
                 form.querySelector('[name="places"]').value = metaFromProduct(product, 'places') || '';
                 form.querySelector('[name="regims_admessos"]').value = metaFromProduct(product, 'regims_admessos') || '';
