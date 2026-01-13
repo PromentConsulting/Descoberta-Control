@@ -385,6 +385,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const preuLinkWrapper = modal.querySelector('[data-preu-link]');
         const preuLinkAnchor = preuLinkWrapper?.querySelector('[data-preu-link-url]');
         const preuLinkEmpty = preuLinkWrapper?.querySelector('[data-preu-link-empty]');
+        const preuLinkGenerate = preuLinkWrapper?.querySelector('[data-preu-link-generate]');
+        const preuGenerateForm = modal.querySelector('[data-preu-generate-form]');
         let removedGallery = [];
 
         const setSelectValue = (select, value) => {
@@ -455,6 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     preuLinkAnchor.style.display = 'inline';
                 }
                 if (preuLinkEmpty) preuLinkEmpty.style.display = 'none';
+                if (preuLinkGenerate) preuLinkGenerate.style.display = 'none';
             } else {
                 if (preuLinkAnchor) {
                     preuLinkAnchor.textContent = '';
@@ -462,6 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     preuLinkAnchor.style.display = 'none';
                 }
                 if (preuLinkEmpty) preuLinkEmpty.style.display = 'inline';
+                if (preuLinkGenerate) preuLinkGenerate.style.display = 'inline-flex';
             }
         };
 
@@ -470,6 +474,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const product = JSON.parse(btn.dataset.editCase || '{}');
 
                 form.querySelector('[name="product_id"]').value = product.id || '';
+                if (preuGenerateForm) {
+                    const generateId = preuGenerateForm.querySelector('[name="product_id"]');
+                    if (generateId) {
+                        generateId.value = product.id || '';
+                    }
+                }
                 form.querySelector('[name="title"]').value = product.name || '';
                 const slugInput = form.querySelector('[name="slug"]');
                 if (slugInput) slugInput.value = slugFromProduct(product);
@@ -513,6 +523,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 openModal(modal);
             });
         });
+
+        if (preuLinkGenerate && preuGenerateForm) {
+            preuLinkGenerate.addEventListener('click', () => {
+                preuGenerateForm.submit();
+            });
+        }
     };
 
     initRangeFilters();
