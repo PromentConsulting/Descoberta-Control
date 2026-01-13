@@ -7,9 +7,13 @@ $casesResponse = woo_products('descoberta');
 $activitatsResponse = woo_products('descoberta');
 $centresResponse = woo_products('descoberta');
 
+$allProducts = $casesResponse['success'] ? ($casesResponse['data'] ?? []) : [];
 $cases = $casesResponse['success'] ? filter_products_by_category($casesResponse['data'], 'cases-de-colonies') : [];
+$cases = array_values(array_filter($cases, fn($case) => !has_category_slug($case, 'preu')));
 $activitats = $activitatsResponse['success'] ? filter_products_by_category($activitatsResponse['data'], 'activitat-de-dia') : [];
 $centres = $centresResponse['success'] ? filter_products_by_category($centresResponse['data'], 'centre-interes') : [];
+
+define('PREU_LINK_META_KEY', 'linked_case_id');
 
 function meta_value(array $product, string $key) {
     foreach ($product['meta_data'] ?? [] as $meta) {
@@ -18,6 +22,15 @@ function meta_value(array $product, string $key) {
         }
     }
     return null;
+}
+
+function has_category_slug(array $product, string $slug): bool {
+    foreach ($product['categories'] ?? [] as $cat) {
+        if (($cat['slug'] ?? '') === $slug) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function selected_items(array $product, string $metaKey, array $fallback = []): array {
@@ -99,10 +112,42 @@ function upload_gallery_files(string $fieldName): array {
     return $uploads;
 }
 
-function prepare_case_images(array $existingImages, string $featuredUrl, int $existingImageId, string $existingImageSrc): array {
-    $images = $existingImages;
+function prepare_case_images(
+    array $existingImages,
+    string $featuredUrl,
+    int $existingImageId,
+    string $existingImageSrc,
+    array $removedGallery
+): array {
+    $removedIds = [];
+    $removedSrcs = [];
+    foreach ($removedGallery as $removed) {
+        if (!empty($removed['id'])) {
+            $removedIds[] = (int)$removed['id'];
+        }
+        if (!empty($removed['src'])) {
+            $removedSrcs[] = (string)$removed['src'];
+        }
+    }
+
+    $images = [];
+    foreach ($existingImages as $index => $img) {
+        if ($index === 0) {
+            $images[] = $img;
+            continue;
+        }
+        $imgId = (int)($img['id'] ?? 0);
+        $imgSrc = (string)($img['src'] ?? '');
+        if ($imgId && in_array($imgId, $removedIds, true)) {
+            continue;
+        }
+        if ($imgSrc !== '' && in_array($imgSrc, $removedSrcs, true)) {
+            continue;
+        }
+        $images[] = $img;
+    }
     $thumbnailId = null;
-    $changed = false;
+    $changed = count($images) !== count($existingImages);
 
     if (!empty($_FILES['featured_file']['tmp_name'])) {
         $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
@@ -276,6 +321,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $featuredUrl = trim($_POST['featured_url'] ?? '');
         $existingImageId = (int)($_POST['existing_image_id'] ?? 0);
         $existingImageSrc = trim($_POST['existing_image_src'] ?? '');
+        $slug = trim($_POST['slug'] ?? ($currentCase['slug'] ?? ''));
+
+        if ($title === '' || $description === '') {
+            flash('error', 'Cal omplir el títol i la descripció.');
+            redirect('/editar_cases.php');
+        }
 
         $getMeta = function (string $key) use ($currentCase, $caseKeys) {
             return meta_value($currentCase, $caseKeys[$key] ?? '') ?? '';
@@ -318,8 +369,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'short_description' => $shortDescription,
             'meta_data' => $metaPayload,
         ];
+        if ($slug !== '') {
+            $payload['slug'] = $slug;
+        }
 
-        $imagesResult = prepare_case_images($currentCase['images'] ?? [], $featuredUrl, $existingImageId, $existingImageSrc);
+        $removedGallery = json_decode($_POST['removed_gallery_images'] ?? '[]', true);
+        if (!is_array($removedGallery)) {
+            $removedGallery = [];
+        }
+        $imagesResult = prepare_case_images($currentCase['images'] ?? [], $featuredUrl, $existingImageId, $existingImageSrc, $removedGallery);
         if ($imagesResult['changed']) {
             $payload['images'] = $imagesResult['images'];
             if ($imagesResult['thumbnail_id']) {
@@ -328,6 +386,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $update = woo_update_product('descoberta', $productId, $payload);
+
+        $preuDuplicate = find_product_by_meta_value($allProducts, PREU_LINK_META_KEY, (string)$productId);
+        if ($preuDuplicate) {
+            $duplicatePayload = $payload;
+            $preuCatId = category_id('descoberta', 'preu');
+            if ($preuCatId) {
+                $duplicatePayload['categories'] = [['id' => $preuCatId]];
+            }
+            if ($slug !== '') {
+                $baseSlug = preg_replace('/-preus$/', '', $slug);
+                $duplicatePayload['slug'] = $baseSlug . '-preus';
+            }
+            $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$productId];
+            $dupUpdate = woo_update_product('descoberta', (int)$preuDuplicate['id'], $duplicatePayload);
+            if (!$dupUpdate['success']) {
+                flash('error', 'No s\'ha pogut actualitzar la casa duplicada de preus: ' . ($dupUpdate['error'] ?? json_encode($dupUpdate['data'])));
+            }
+        }
 
         if ($update['success']) {
             flash('success', 'Casa actualitzada correctament');
@@ -344,6 +420,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $shortDescription = trim($_POST['short_description'] ?? '');
         $featuredUrl = trim($_POST['featured_url'] ?? '');
+
+        if ($title === '' || $description === '') {
+            flash('error', 'Cal omplir el títol i la descripció.');
+            redirect('/editar_cases.php');
+        }
 
         $normativaVal = '';
         if (!empty($_FILES['normativa']['tmp_name'])) {
@@ -385,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'meta_data' => $metaPayload,
         ];
 
-        $imagesResult = prepare_case_images([], $featuredUrl, 0, '');
+        $imagesResult = prepare_case_images([], $featuredUrl, 0, '', []);
         if ($imagesResult['changed']) {
             $payload['images'] = $imagesResult['images'];
             if ($imagesResult['thumbnail_id']) {
@@ -401,6 +482,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $create = woo_create_product('descoberta', $payload);
 
         if ($create['success']) {
+            $createdProduct = $create['data'] ?? [];
+            $preuCatId = category_id('descoberta', 'preu');
+            if ($preuCatId && !empty($createdProduct['id'])) {
+                $baseSlug = $createdProduct['slug'] ?? '';
+                $duplicatePayload = $payload;
+                $duplicatePayload['categories'] = [['id' => $preuCatId]];
+                if ($baseSlug !== '') {
+                    $duplicatePayload['slug'] = $baseSlug . '-preus';
+                }
+                $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$createdProduct['id']];
+                if (!empty($imagesResult['images'])) {
+                    $duplicatePayload['images'] = $imagesResult['images'];
+                }
+                if ($imagesResult['thumbnail_id']) {
+                    $duplicatePayload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
+                }
+                $duplicate = woo_create_product('descoberta', $duplicatePayload);
+                if (!$duplicate['success']) {
+                    flash('error', 'No s\'ha pogut crear la casa duplicada de preus: ' . ($duplicate['error'] ?? json_encode($duplicate['data'])));
+                }
+            }
+
             flash('success', 'Casa creada correctament');
         } else {
             flash('error', 'No s\'ha pogut crear la casa: ' . ($create['error'] ?? json_encode($create['data'])));
@@ -677,6 +780,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                     $casePayload = [
                         'id' => $case['id'],
                         'name' => $case['name'] ?? '',
+                        'slug' => $case['slug'] ?? '',
                         'description' => $case['description'] ?? '',
                         'short_description' => $case['short_description'] ?? '',
                         'meta' => $caseMeta,
@@ -741,11 +845,15 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                     <input type="hidden" name="existing_normativa">
                     <input type="hidden" name="existing_image_id">
                     <input type="hidden" name="existing_image_src">
+                    <input type="hidden" name="removed_gallery_images" value="[]">
 
-                    <label>Títol</label>
+                    <label>Títol <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
-                    <label>Descripció</label>
+                    <label>URL</label>
+                    <input type="text" name="slug" placeholder="exemple-url">
+
+                    <label>Descripció <span class="required-asterisk">*</span></label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -756,7 +864,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                             <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
                         </div>
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
-                        <textarea name="description" class="rich" rows="4"></textarea>
+                        <textarea name="description" class="rich" rows="4" required></textarea>
                     </div>
 
                     <label>Descripció curta del producte</label>
@@ -871,8 +979,13 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                     <input type="url" name="featured_url" placeholder="https://...">
 
                     <label>Galeria d'imatges</label>
-                    <input type="file" name="gallery_files[]" accept="image/*" multiple>
-                    <p class="hint">Pots seleccionar diverses imatges</p>
+                    <div class="gallery-manager">
+                        <div class="gallery-grid" data-gallery-grid></div>
+                        <div>
+                            <input type="file" name="gallery_files[]" accept="image/*" multiple>
+                            <p class="hint">Pots seleccionar diverses imatges</p>
+                        </div>
+                    </div>
 
                     <label>Normativa de la casa</label>
                     <input type="file" name="normativa" accept="application/pdf,.doc,.docx,.png,.jpg,.jpeg">
@@ -899,10 +1012,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                 <form class="form-card" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="product_action" value="create_case">
 
-                    <label>Títol</label>
+                    <label>Títol <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
-                    <label>Descripció</label>
+                    <label>Descripció <span class="required-asterisk">*</span></label>
                     <div class="rich-wrapper" data-rich-editor>
                         <div class="rich-toolbar">
                             <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
@@ -913,7 +1026,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                             <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
                         </div>
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
-                        <textarea name="description" class="rich" rows="4"></textarea>
+                        <textarea name="description" class="rich" rows="4" required></textarea>
                     </div>
 
                     <label>Descripció curta del producte</label>

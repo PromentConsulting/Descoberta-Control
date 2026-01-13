@@ -158,7 +158,20 @@ function wp_upload_media(string $siteKey, array $file): array {
 
 function category_id(string $siteKey, string $slug): ?int {
     $config = site_config($siteKey);
-    return $config['categories'][$slug] ?? null;
+    $configured = $config['categories'][$slug] ?? null;
+    if (!empty($configured)) {
+        return (int)$configured;
+    }
+
+    $response = api_request($siteKey, 'GET', 'wp-json/wc/v3/products/categories', [
+        'slug' => $slug,
+        'per_page' => 1,
+    ]);
+    if ($response['success'] && !empty($response['data'][0]['id'])) {
+        return (int)$response['data'][0]['id'];
+    }
+
+    return null;
 }
 
 function filter_products_by_category(array $products, string $slug): array {
