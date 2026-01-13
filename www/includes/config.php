@@ -69,10 +69,10 @@ $SITE_APIS = [
     'el-ginebro' => [
         'name' => 'El Ginebró',
         'base_url' => getenv('GINEBRO_BASE_URL') ?: 'https://elginebro.cat/',
-        'consumer_key' => getenv('GINEBRO_CONSUMER_KEY') ?: 'ck_5af258f2656f422b586c8ee2a1d8865b42bc2181',
-        'consumer_secret' => getenv('GINEBRO_CONSUMER_SECRET') ?: 'cs_2cd52e23f1f308576beb755f7866cf426830739a',
+        'consumer_key' => getenv('GINEBRO_CONSUMER_KEY') ?: 'ck_a6e365d51b7e1759c836f764ec889798273a07ef',
+        'consumer_secret' => getenv('GINEBRO_CONSUMER_SECRET') ?: 'cs_199c52fea764f43dfa572adfc6ee834629cfddbe',
         'basic_user' => getenv('GINEBRO_BASIC_USER') ?: 'ertaweb',
-        'basic_password' => getenv('GINEBRO_BASIC_PASSWORD') ?: 'KOpY YdHn 8Sfn Kkdd XgBQ gqMZ',
+        'basic_password' => getenv('GINEBRO_BASIC_PASSWORD') ?: 'q0JM winp UAMM 3N1I ZEuN bzNW',
         'categories' => [
             'activitat-de-dia' => 25,
             'centre-interes' => 26,
@@ -147,4 +147,5 @@ $CATEGORIES_OPTIONS = [
     'Propostes a l\'aula', 'Cuina', 'Apicultura', 'Treball de camp', 'Natura', 'Granja i vida al camp',
     'Contres i llegendes', 'Tradició', 'Aventura', 'Expressió corporal i artística', 'Mar', 'Història',
     'Dinàmiques', 'Sostenibilitat', 'Cures personals', 'Participació i vida comunitària'
+
 ];
