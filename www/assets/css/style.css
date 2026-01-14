@@ -889,6 +889,10 @@ body {
 
 /* Tables */
 .table-wrapper { width: 100%; overflow-x: auto; }
+.table-wrapper.scrollable {
+    max-height: 70vh;
+    overflow-y: auto;
+}
 .styled-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05); }
 .styled-table th, .styled-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; text-align: left; }
 .styled-table th { background: #f9fafb; font-weight: 600; color: #4b5563; }

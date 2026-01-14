@@ -3,15 +3,13 @@ require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
 
-$casesResponse = woo_products('descoberta');
-$activitatsResponse = woo_products('descoberta');
-$centresResponse = woo_products('descoberta');
+$productsResponse = woo_all_products('descoberta');
 
-$allProducts = $casesResponse['success'] ? ($casesResponse['data'] ?? []) : [];
-$cases = $casesResponse['success'] ? filter_products_by_category($casesResponse['data'], 'cases-de-colonies') : [];
+$allProducts = $productsResponse['success'] ? ($productsResponse['data'] ?? []) : [];
+$cases = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'cases-de-colonies') : [];
 $cases = array_values(array_filter($cases, fn($case) => !has_category_slug($case, 'preu')));
-$activitats = $activitatsResponse['success'] ? filter_products_by_category($activitatsResponse['data'], 'activitat-de-dia') : [];
-$centres = $centresResponse['success'] ? filter_products_by_category($centresResponse['data'], 'centre-interes') : [];
+$activitats = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'activitat-de-dia') : [];
+$centres = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'centre-interes') : [];
 
 define('PREU_LINK_META_KEY', 'linked_case_id');
 
@@ -805,7 +803,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
         </form>
     </div>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper scrollable">
         <table class="styled-table">
             <thead>
                 <tr>
