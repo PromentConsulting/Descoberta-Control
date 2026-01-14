@@ -89,6 +89,38 @@ function woo_products(string $siteKey, array $params = []): array {
     return api_request($siteKey, 'GET', 'wp-json/wc/v3/products', $params);
 }
 
+function woo_all_products(string $siteKey, array $params = []): array {
+    $perPage = (int)($params['per_page'] ?? 100);
+    if ($perPage <= 0 || $perPage > 100) {
+        $perPage = 100;
+    }
+
+    $params = array_merge(['per_page' => $perPage, 'status' => 'any'], $params);
+    $page = 1;
+    $allProducts = [];
+    $lastResponse = ['success' => true, 'status' => 200, 'data' => []];
+
+    do {
+        $params['page'] = $page;
+        $response = api_request($siteKey, 'GET', 'wp-json/wc/v3/products', $params);
+        if (!$response['success']) {
+            return $response;
+        }
+
+        $data = $response['data'] ?? [];
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        $allProducts = array_merge($allProducts, $data);
+        $lastResponse = $response;
+        $page++;
+    } while (count($data) === $perPage);
+
+    $lastResponse['data'] = $allProducts;
+    return $lastResponse;
+}
+
 function woo_create_product(string $siteKey, array $payload): array {
     return api_request($siteKey, 'POST', 'wp-json/wc/v3/products', $payload);
 }

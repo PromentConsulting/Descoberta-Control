@@ -5,7 +5,7 @@ $messages = flash();
 
 $products = [];
 $apiError = null;
-$response = woo_products('descoberta');
+$response = woo_all_products('descoberta');
 if ($response['success']) {
     $products = filter_products_by_category($response['data'], 'centre-interes');
 } else {
@@ -325,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         <div class="alert error"><?php echo htmlspecialchars($apiError); ?></div>
     <?php endif; ?>
 
-    <div class="table-wrapper">
+    <div class="table-wrapper scrollable">
         <table class="styled-table">
             <thead>
                 <tr>
