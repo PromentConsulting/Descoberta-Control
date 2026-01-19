@@ -4,11 +4,28 @@ require_login();
 $messages = flash();
 $sites = ['descoberta', 'can-pere', 'cal-mata', 'can-foix', 'el-ginebro'];
 
+function normalize_slug_input(string $slug): string {
+    $slug = trim($slug);
+    if ($slug === '') {
+        return '';
+    }
+    if (preg_match('/^https?:\\/\\//i', $slug)) {
+        $path = parse_url($slug, PHP_URL_PATH) ?? '';
+        $path = trim($path, '/');
+        if ($path !== '') {
+            $parts = explode('/', $path);
+            return end($parts) ?: '';
+        }
+    }
+    return $slug;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $selectedSites = $_POST['sites'] ?? [];
     $title = trim($_POST['title'] ?? '');
     $content = $_POST['content'] ?? '';
     $featuredUrl = trim($_POST['featured_url'] ?? '');
+    $slug = normalize_slug_input($_POST['slug'] ?? '');
 
     if (empty($selectedSites)) {
         flash('error', 'Tria almenys una web de destí.');
@@ -21,6 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'content' => $content,
             'status' => 'publish',
         ];
+        if ($slug !== '') {
+            $payload['slug'] = $slug;
+        }
 
         $meta = [];
         if (!empty($_FILES['featured_file']['tmp_name'])) {
@@ -71,6 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label>Títol de l\'entrada</label>
         <input type="text" name="title" required>
+
+        <label>URL de l\'entrada</label>
+        <input type="text" name="slug" placeholder="exemple-url">
 
         <label>Contingut</label>
         <div class="rich-wrapper" data-rich-editor>
