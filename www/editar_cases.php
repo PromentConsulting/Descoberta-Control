@@ -395,8 +395,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $normativaVal = trim($_POST['existing_normativa'] ?? (string)$getMeta('normativa'));
         if (!empty($_FILES['normativa']['tmp_name'])) {
             $upload = wp_upload_media('descoberta', $_FILES['normativa']);
-            if ($upload['success'] && isset($upload['data']['source_url'])) {
-                $normativaVal = $upload['data']['source_url'];
+            if ($upload['success'] && isset($upload['data']['id'])) {
+                $normativaVal = (string)$upload['data']['id'];
             } else {
                 flash('error', 'No s\'ha pogut pujar la normativa: ' . ($upload['error'] ?? 'Error desconegut'));
             }
@@ -489,8 +489,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $normativaVal = '';
         if (!empty($_FILES['normativa']['tmp_name'])) {
             $upload = wp_upload_media('descoberta', $_FILES['normativa']);
-            if ($upload['success'] && isset($upload['data']['source_url'])) {
-                $normativaVal = $upload['data']['source_url'];
+            if ($upload['success'] && isset($upload['data']['id'])) {
+                $normativaVal = (string)$upload['data']['id'];
             } else {
                 flash('error', 'No s\'ha pogut pujar la normativa: ' . ($upload['error'] ?? 'Error desconegut'));
             }
