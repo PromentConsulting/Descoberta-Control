@@ -135,6 +135,7 @@ $ACF_FIELD_KEYS = [
         'altres_activitats' => 'altres_activitats',
         'cases_on_es_pot_fer' => 'cases_on_es_pot_fer_el_centre_dinteres',
         'altres_propostes' => 'altres_propostes_semblants',
+        'logotip_ods' => 'logotip_ods',
     ],
     'url' => 'url',
 ];
