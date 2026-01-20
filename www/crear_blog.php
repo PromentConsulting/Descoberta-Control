@@ -14,10 +14,21 @@ function normalize_slug_input(string $slug): string {
         $path = trim($path, '/');
         if ($path !== '') {
             $parts = explode('/', $path);
-            return end($parts) ?: '';
+            $slug = end($parts) ?: '';
         }
     }
-    return $slug;
+    $slug = preg_replace('/[^\\pL\\pN]+/u', '-', $slug);
+    $slug = trim($slug, '-');
+    if ($slug === '') {
+        return '';
+    }
+    $slug = function_exists('iconv')
+        ? iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug) ?: $slug
+        : $slug;
+    $slug = strtolower($slug);
+    $slug = preg_replace('/[^a-z0-9-]+/', '', $slug);
+    $slug = preg_replace('/-+/', '-', $slug);
+    return trim($slug, '-');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -25,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $content = $_POST['content'] ?? '';
     $featuredUrl = trim($_POST['featured_url'] ?? '');
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
     $slug = normalize_slug_input($_POST['slug'] ?? '');
 
     if (empty($selectedSites)) {
@@ -53,6 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } elseif ($featuredUrl) {
             $meta['featured_url'] = $featuredUrl;
+        }
+
+        if ($seoTitle !== '') {
+            $meta['_yoast_wpseo_title'] = $seoTitle;
+        }
+        if ($seoDescription !== '') {
+            $meta['_yoast_wpseo_metadesc'] = $seoDescription;
         }
 
         if ($meta) {
@@ -113,6 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="file" name="featured_file" accept="image/*">
         <p class="hint">O enganxa una URL directa</p>
         <input type="url" name="featured_url" placeholder="https://...">
+
+        <label>Títol SEO</label>
+        <input type="text" name="seo_title" placeholder="Títol per al SEO">
+
+        <label>Descripció SEO</label>
+        <textarea name="seo_description" rows="3" placeholder="Descripció per al SEO"></textarea>
 
         <button class="btn large" type="submit">Publicar entrada</button>
     </form>
