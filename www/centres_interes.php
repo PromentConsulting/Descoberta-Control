@@ -2,6 +2,14 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
+$modalState = $_GET['modal'] ?? '';
+$modalMessage = null;
+if ($modalState === 'edit' && ($_GET['saved'] ?? '') === '1') {
+    $modalMessage = 'Canvis desats correctament';
+}
+if ($modalState === 'create' && ($_GET['created'] ?? '') === '1') {
+    $modalMessage = 'Centre d\'interès creat correctament';
+}
 
 $products = [];
 $apiError = null;
@@ -192,6 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
             ['key' => $ACF_FIELD_KEYS['centres']['altres_activitats'], 'value' => trim($_POST['altres_activitats'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['altres_activitats']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer'], 'value' => trim($_POST['cases_on_es_pot_fer'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['altres_propostes'], 'value' => trim($_POST['altres_propostes'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['altres_propostes']) ?? ''))],
+            ['key' => $ACF_FIELD_KEYS['centres']['logotip_ods'], 'value' => meta_value($product, $ACF_FIELD_KEYS['centres']['logotip_ods']) ?? ''],
         ],
     ];
     if ($slug !== '') {
@@ -224,10 +233,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         }
     }
 
+    if (!empty($_FILES['logotip_ods_file']['tmp_name'])) {
+        $upload = wp_upload_media('descoberta', $_FILES['logotip_ods_file']);
+        if ($upload['success'] && isset($upload['data']['id'])) {
+            $logotipKey = $ACF_FIELD_KEYS['centres']['logotip_ods'];
+            $found = false;
+            foreach ($payload['meta_data'] as &$meta) {
+                if (($meta['key'] ?? '') === $logotipKey) {
+                    $meta['value'] = $upload['data']['id'];
+                    $found = true;
+                    break;
+                }
+            }
+            unset($meta);
+            if (!$found) {
+                $payload['meta_data'][] = ['key' => $logotipKey, 'value' => $upload['data']['id']];
+            }
+        } else {
+            flash('error', 'No s\'ha pogut pujar el logotip ODS: ' . ($upload['error'] ?? 'error desconegut'));
+        }
+    }
+
     $update = woo_update_product('descoberta', $productId, $payload);
 
     if ($update['success']) {
-        flash('success', 'Centre d\'interès actualitzat correctament');
+        redirect('/centres_interes.php?modal=edit&product_id=' . $productId . '&saved=1');
     } else {
         flash('error', 'No s\'ha pogut actualitzar la fitxa: ' . ($update['error'] ?? json_encode($update['data'])));
     }
@@ -302,10 +332,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         $payload['images'] = [['src' => $featuredUrl]];
     }
 
+    if (!empty($_FILES['logotip_ods_file']['tmp_name'])) {
+        $upload = wp_upload_media('descoberta', $_FILES['logotip_ods_file']);
+        if ($upload['success'] && isset($upload['data']['id'])) {
+            $payload['meta_data'][] = [
+                'key' => $ACF_FIELD_KEYS['centres']['logotip_ods'],
+                'value' => $upload['data']['id'],
+            ];
+        } else {
+            flash('error', 'No s\'ha pogut pujar el logotip ODS: ' . ($upload['error'] ?? 'error desconegut'));
+        }
+    }
+
     $create = woo_create_product('descoberta', $payload);
     if ($create['success']) {
-        flash('success', 'Centre d\'interès creat');
-        redirect('/centres_interes.php');
+        redirect('/centres_interes.php?modal=create&created=1');
     } else {
         flash('error', 'Error en crear la fitxa: ' . json_encode($create['data']));
         redirect('/centres_interes.php');
@@ -350,7 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                     class="icon-btn primary"
                                     title="Editar"
                                     data-open="modalEditCentre"
-                                    data-edit-centre="<?php echo htmlspecialchars(json_encode($product), ENT_QUOTES, 'UTF-8'); ?>">
+                                    data-edit-centre="<?php echo htmlspecialchars(json_encode($product), ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-centre-id="<?php echo htmlspecialchars((string)($product['id'] ?? '')); ?>">
                                 <i class="fa fa-pen"></i>
                             </button>
                             <form method="POST" class="inline-form">
@@ -377,6 +419,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <button class="modal-close" type="button">&times;</button>
             </div>
             <div class="modal-body scrollable">
+                <?php if ($modalState === 'edit' && $modalMessage): ?>
+                    <div class="alert success"><?php echo htmlspecialchars($modalMessage); ?></div>
+                <?php endif; ?>
                 <form class="form-card" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="product_action" value="edit_product">
                     <input type="hidden" name="product_id">
@@ -545,6 +590,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <p class="hint">O enganxa una URL directa</p>
                     <input type="url" name="featured_url" placeholder="https://...">
 
+                    <label>Logotip ODS</label>
+                    <input type="file" name="logotip_ods_file" accept="image/*">
+
                     <div class="modal-footer">
                         <button type="button" class="btn secondary modal-close">Cancel·lar</button>
                         <button type="submit" class="btn">Desar canvis</button>
@@ -563,6 +611,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <button class="modal-close" type="button">&times;</button>
             </div>
             <div class="modal-body scrollable">
+                <?php if ($modalState === 'create' && $modalMessage): ?>
+                    <div class="alert success"><?php echo htmlspecialchars($modalMessage); ?></div>
+                <?php endif; ?>
                 <form class="form-card" method="POST" enctype="multipart/form-data">
                     <label>Títol del producte <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
@@ -721,6 +772,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <input type="file" name="featured_file" accept="image/*">
                     <p class="hint">O enganxa una URL directa</p>
                     <input type="url" name="featured_url" placeholder="https://...">
+
+                    <label>Logotip ODS</label>
+                    <input type="file" name="logotip_ods_file" accept="image/*">
 
                     <label>Estat</label>
                     <select name="status">

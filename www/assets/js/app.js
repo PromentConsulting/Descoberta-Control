@@ -373,6 +373,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    const openCentreModalFromUrl = () => {
+        const params = new URLSearchParams(window.location.search);
+        const target = params.get('modal');
+        if (!target) return;
+
+        if (target === 'create') {
+            openModal(document.getElementById('modalCentre'));
+            return;
+        }
+
+        if (target === 'edit') {
+            const productId = params.get('product_id');
+            if (!productId) {
+                openModal(document.getElementById('modalEditCentre'));
+                return;
+            }
+            const button = document.querySelector(`[data-edit-centre][data-centre-id="${productId}"]`);
+            if (button) {
+                button.click();
+            } else {
+                openModal(document.getElementById('modalEditCentre'));
+            }
+        }
+    };
+
     const initCaseEditor = () => {
         if (!window.CASE_META_KEYS) return;
         const modal = document.getElementById('modalEditCase');
@@ -534,5 +559,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initRangeFilters();
     initActivitatEditor();
     initCentreEditor();
+    openCentreModalFromUrl();
     initCaseEditor();
 });
