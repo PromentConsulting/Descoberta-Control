@@ -69,10 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($seoTitle !== '') {
-            $meta['_yoast_wpseo_title'] = $seoTitle;
+            $meta['yoast_wpseo_title'] = $seoTitle;
         }
         if ($seoDescription !== '') {
-            $meta['_yoast_wpseo_metadesc'] = $seoDescription;
+            $meta['yoast_wpseo_metadesc'] = $seoDescription;
         }
 
         if ($meta) {
