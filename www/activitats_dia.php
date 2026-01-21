@@ -311,8 +311,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         <div class="alert error"><?php echo htmlspecialchars($apiError); ?></div>
     <?php endif; ?>
 
+    <div class="filters-card">
+        <div class="filters-grid">
+            <div class="filter-block">
+                <label class="filter-label">Cercar per nom</label>
+                <input type="search" placeholder="Escriu el nom de l'activitat" data-table-search data-table-target="#activitats-table">
+            </div>
+        </div>
+    </div>
+
     <div class="table-wrapper scrollable">
-        <table class="styled-table">
+        <table class="styled-table" id="activitats-table">
             <thead>
                 <tr>
                     <th class="sortable" data-sort-key="title">Títol <i class="fa fa-sort"></i></th>
@@ -326,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <?php foreach ($products as $product): ?>
                     <?php $dateInfo = formatted_product_date($product['date_modified'] ?? ''); ?>
                     <?php $statusText = status_label($product['status'] ?? ''); ?>
-                    <tr>
+                    <tr data-search-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>">
                         <td data-col="title" data-sort-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>"><?php echo htmlspecialchars($product['name'] ?? ''); ?></td>
                         <td data-col="status" data-sort-value="<?php echo htmlspecialchars($statusText); ?>"><?php echo htmlspecialchars($statusText); ?></td>
                         <td><?php if (!empty($product['images'][0]['src'])): ?><img class="thumb" src="<?php echo htmlspecialchars($product['images'][0]['src']); ?>" alt="thumb"><?php endif; ?></td>
