@@ -373,6 +373,27 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+    const initTableSearch = () => {
+        document.querySelectorAll('[data-table-search]').forEach(input => {
+            const target = input.dataset.tableTarget || '';
+            const table = target ? document.querySelector(target) : null;
+            const tbody = table?.querySelector('tbody');
+            if (!table || !tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const filterRows = () => {
+                const term = input.value.trim().toLowerCase();
+                rows.forEach(row => {
+                    const haystack = (row.dataset.searchValue || row.textContent || '').toLowerCase();
+                    row.style.display = haystack.includes(term) ? '' : 'none';
+                });
+            };
+
+            input.addEventListener('input', filterRows);
+            filterRows();
+        });
+    };
+
     const openCentreModalFromUrl = () => {
         const params = new URLSearchParams(window.location.search);
         const target = params.get('modal');
@@ -557,6 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     initRangeFilters();
+    initTableSearch();
     initActivitatEditor();
     initCentreEditor();
     openCentreModalFromUrl();

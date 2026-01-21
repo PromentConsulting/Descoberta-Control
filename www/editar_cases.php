@@ -727,6 +727,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
 
     <div class="filters-card">
         <form method="GET" class="filters-grid">
+            <div class="filter-block">
+                <label class="filter-label">Cercar per nom</label>
+                <input type="search" name="search" placeholder="Escriu el nom de la casa" data-table-search data-table-target="#cases-table">
+            </div>
             <div class="filter-block range" data-range-filter>
                 <div class="filter-header">
                     <label class="filter-label">Places</label>
@@ -804,7 +808,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
     </div>
 
     <div class="table-wrapper scrollable">
-        <table class="styled-table">
+        <table class="styled-table" id="cases-table">
             <thead>
                 <tr>
                     <th>Nom</th>
@@ -855,7 +859,7 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'preu_link' => $preuLink,
                     ];
                 ?>
-                    <tr class="<?php echo $highlight ? 'highlight' : ''; ?>">
+                    <tr class="<?php echo $highlight ? 'highlight' : ''; ?>" data-search-value="<?php echo htmlspecialchars(strtolower($case['name'])); ?>">
                         <td><?php echo htmlspecialchars($case['name']); ?></td>
                         <td>
                             <form method="POST" class="inline-form">
