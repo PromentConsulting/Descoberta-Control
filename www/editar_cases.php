@@ -403,6 +403,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $piscinaVal = normalize_yes_no($_POST['piscina'] ?? $getMeta('piscina')) ?: normalize_yes_no($getMeta('piscina'));
+        $accesTransportVal = normalize_yes_no($_POST['acces_en_transport_public'] ?? $getMeta('acces_en_transport_public')) ?: normalize_yes_no($getMeta('acces_en_transport_public'));
+        $granjaEscolaVal = normalize_yes_no($_POST['granja_escola'] ?? $getMeta('granja_escola')) ?: normalize_yes_no($getMeta('granja_escola'));
+        $escolaDeMarVal = normalize_yes_no($_POST['escola_de_mar'] ?? $getMeta('escola_de_mar')) ?: normalize_yes_no($getMeta('escola_de_mar'));
+        $aventuraVal = normalize_yes_no($_POST['aventura'] ?? $getMeta('aventura')) ?: normalize_yes_no($getMeta('aventura'));
         $wifiVal = normalize_yes_no($_POST['wifi'] ?? $getMeta('wifi')) ?: normalize_yes_no($getMeta('wifi'));
 
         $metaPayload = [
@@ -417,6 +421,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['key' => $caseKeys['exteriors'] ?? 'exteriors', 'value' => trim($_POST['exteriors'] ?? (string)$getMeta('exteriors'))],
             ['key' => $caseKeys['piscina'] ?? 'piscina', 'value' => $piscinaVal ?: (string)$getMeta('piscina')],
             ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? (int)$getMeta('places_adaptades'))],
+            ['key' => $caseKeys['acces_en_transport_public'] ?? 'acces_en_transport_public', 'value' => $accesTransportVal ?: (string)$getMeta('acces_en_transport_public')],
+            ['key' => $caseKeys['granja_escola'] ?? 'granja_escola', 'value' => $granjaEscolaVal ?: (string)$getMeta('granja_escola')],
+            ['key' => $caseKeys['escola_de_mar'] ?? 'escola_de_mar', 'value' => $escolaDeMarVal ?: (string)$getMeta('escola_de_mar')],
+            ['key' => $caseKeys['aventura'] ?? 'aventura', 'value' => $aventuraVal ?: (string)$getMeta('aventura')],
             ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal ?: (string)$getMeta('wifi')],
             ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
             ['key' => $caseKeys['preus'] ?? 'preus', 'value' => trim($_POST['preus'] ?? (string)$getMeta('preus'))],
@@ -497,6 +505,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $piscinaVal = normalize_yes_no($_POST['piscina'] ?? '');
+        $accesTransportVal = normalize_yes_no($_POST['acces_en_transport_public'] ?? '');
+        $granjaEscolaVal = normalize_yes_no($_POST['granja_escola'] ?? '');
+        $escolaDeMarVal = normalize_yes_no($_POST['escola_de_mar'] ?? '');
+        $aventuraVal = normalize_yes_no($_POST['aventura'] ?? '');
         $wifiVal = normalize_yes_no($_POST['wifi'] ?? '');
 
         $metaPayload = [
@@ -511,6 +523,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['key' => $caseKeys['exteriors'] ?? 'exteriors', 'value' => trim($_POST['exteriors'] ?? '')],
             ['key' => $caseKeys['piscina'] ?? 'piscina', 'value' => $piscinaVal],
             ['key' => $caseKeys['places_adaptades'] ?? 'places_adptades', 'value' => (int)($_POST['places_adaptades'] ?? 0)],
+            ['key' => $caseKeys['acces_en_transport_public'] ?? 'acces_en_transport_public', 'value' => $accesTransportVal],
+            ['key' => $caseKeys['granja_escola'] ?? 'granja_escola', 'value' => $granjaEscolaVal],
+            ['key' => $caseKeys['escola_de_mar'] ?? 'escola_de_mar', 'value' => $escolaDeMarVal],
+            ['key' => $caseKeys['aventura'] ?? 'aventura', 'value' => $aventuraVal],
             ['key' => $caseKeys['wifi'] ?? 'wifi', 'value' => $wifiVal],
             ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal],
             ['key' => $caseKeys['preus'] ?? 'preus', 'value' => trim($_POST['preus'] ?? '')],
@@ -835,6 +851,10 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         'exteriors' => (string)meta_value($case, $caseKeys['exteriors'] ?? ''),
                         'piscina' => normalize_yes_no(meta_value($case, $caseKeys['piscina'] ?? '')),
                         'places_adaptades' => (int)meta_value($case, $caseKeys['places_adaptades'] ?? ''),
+                        'acces_en_transport_public' => normalize_yes_no(meta_value($case, $caseKeys['acces_en_transport_public'] ?? '')),
+                        'granja_escola' => normalize_yes_no(meta_value($case, $caseKeys['granja_escola'] ?? '')),
+                        'escola_de_mar' => normalize_yes_no(meta_value($case, $caseKeys['escola_de_mar'] ?? '')),
+                        'aventura' => normalize_yes_no(meta_value($case, $caseKeys['aventura'] ?? '')),
                         'wifi' => normalize_yes_no(meta_value($case, $caseKeys['wifi'] ?? '')),
                         'normativa' => (string)meta_value($case, $caseKeys['normativa'] ?? ''),
                         'preus' => (string)meta_value($case, $caseKeys['preus'] ?? ''),
@@ -1017,6 +1037,44 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
 
                     <div class="two-columns">
                         <div>
+                            <label>Accés en transport públic</label>
+                            <select name="acces_en_transport_public">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Granja escola</label>
+                            <select name="granja_escola">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Escola de mar</label>
+                            <select name="escola_de_mar">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Aventura</label>
+                            <select name="aventura">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
                             <label>WIFI</label>
                             <select name="wifi">
                                 <option value="">Selecciona...</option>
@@ -1184,6 +1242,44 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
                         <div>
                             <label>Places adaptades (nº)</label>
                             <input type="number" name="places_adaptades" min="0" step="1">
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Accés en transport públic</label>
+                            <select name="acces_en_transport_public">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Granja escola</label>
+                            <select name="granja_escola">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="two-columns">
+                        <div>
+                            <label>Escola de mar</label>
+                            <select name="escola_de_mar">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Aventura</label>
+                            <select name="aventura">
+                                <option value="">Selecciona...</option>
+                                <option value="Si">Si</option>
+                                <option value="No">No</option>
+                            </select>
                         </div>
                     </div>
 

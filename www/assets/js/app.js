@@ -548,6 +548,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="google_maps"]').value = metaFromProduct(product, 'google_maps') || '';
 
                 setSelectValue(form.querySelector('[name="piscina"]'), normalizeYesNo(metaFromProduct(product, 'piscina')));
+                setSelectValue(form.querySelector('[name="acces_en_transport_public"]'), normalizeYesNo(metaFromProduct(product, 'acces_en_transport_public')));
+                setSelectValue(form.querySelector('[name="granja_escola"]'), normalizeYesNo(metaFromProduct(product, 'granja_escola')));
+                setSelectValue(form.querySelector('[name="escola_de_mar"]'), normalizeYesNo(metaFromProduct(product, 'escola_de_mar')));
+                setSelectValue(form.querySelector('[name="aventura"]'), normalizeYesNo(metaFromProduct(product, 'aventura')));
                 setSelectValue(form.querySelector('[name="wifi"]'), normalizeYesNo(metaFromProduct(product, 'wifi')));
 
                 const normativaVal = metaFromProduct(product, 'normativa') || '';
