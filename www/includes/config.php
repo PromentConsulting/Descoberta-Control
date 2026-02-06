@@ -1,6 +1,9 @@
 <?php
 // Configuración general de la app
 
+define('TRANSLATION_PARENT_META_KEY', 'translation_parent_id');
+define('TRANSLATION_LANG_META_KEY', 'translation_lang');
+
 define('ADMIN_SEED', [
     'username' => 'admin',
     'password_hash' => '$2y$12$I.wlt8zsHHRS4hgAv1FLpOT48lDxEhmES2NMMIy.k2O8b/jo2/Evq',

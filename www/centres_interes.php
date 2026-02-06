@@ -12,10 +12,12 @@ if ($modalState === 'create' && ($_GET['created'] ?? '') === '1') {
 }
 
 $products = [];
+$allProducts = [];
 $apiError = null;
 $response = woo_all_products('descoberta');
 if ($response['success']) {
-    $products = filter_products_by_category($response['data'], 'centre-interes');
+    $allProducts = $response['data'] ?? [];
+    $products = filter_products_by_category($allProducts, 'centre-interes');
 } else {
     $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
@@ -83,6 +85,23 @@ function meta_value(array $product, string $key) {
     return null;
 }
 
+function translation_parent_id(array $product): int {
+    return (int)(meta_value($product, TRANSLATION_PARENT_META_KEY) ?? 0);
+}
+
+function is_translation_product(array $product): bool {
+    return translation_parent_id($product) > 0;
+}
+
+function find_translation_product(array $products, int $parentId): ?array {
+    foreach ($products as $product) {
+        if (translation_parent_id($product) === $parentId) {
+            return $product;
+        }
+    }
+    return null;
+}
+
 function normalize_slug_input(string $slug): string {
     $slug = trim($slug);
     if ($slug === '') {
@@ -116,6 +135,10 @@ function normalize_categories(array $product, int $mainCategoryId): array {
     }
 
     return $categories;
+}
+
+if ($products) {
+    $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') === 'toggle_status') {
@@ -257,6 +280,84 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
     $update = woo_update_product('descoberta', $productId, $payload);
 
     if ($update['success']) {
+        $translationProduct = find_translation_product($allProducts, $productId);
+        $titleEs = trim($_POST['title_es'] ?? ($translationProduct['name'] ?? ''));
+        $descriptionEs = trim($_POST['description_es'] ?? ($translationProduct['description'] ?? ''));
+        $statusEs = ($_POST['status_es'] ?? ($translationProduct['status'] ?? 'draft')) === 'publish' ? 'publish' : 'draft';
+        $slugEs = normalize_slug_input($_POST['slug_es'] ?? ($translationProduct['slug'] ?? ''));
+
+        $ciclesEs = $_POST['cicles_es'] ?? (array)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['cicles']) ?? []);
+        if (!is_array($ciclesEs)) {
+            $ciclesEs = [$ciclesEs];
+        }
+        $ciclesEs = array_values(array_filter(array_map('trim', $ciclesEs)));
+
+        $categoriaEs = $_POST['categoria_es'] ?? (array)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['categoria']) ?? []);
+        if (!is_array($categoriaEs)) {
+            $categoriaEs = [$categoriaEs];
+        }
+        $categoriaEs = array_values(array_filter(array_map('trim', $categoriaEs)));
+
+        $payloadEs = [
+            'name' => $titleEs,
+            'status' => $statusEs,
+            'description' => $descriptionEs,
+            'categories' => [],
+            'meta_data' => [
+                ['key' => $ACF_FIELD_KEYS['centres']['competencies'], 'value' => trim($_POST['competencies_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['competencies']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['metodologia'], 'value' => trim($_POST['metodologia_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['metodologia']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['cicles'], 'value' => $ciclesEs],
+                ['key' => $ACF_FIELD_KEYS['centres']['categoria'], 'value' => $categoriaEs],
+                ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_1'], 'value' => trim($_POST['titol_programa_1_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['titol_programa_1']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_1'], 'value' => trim($_POST['descripcio_programa_1_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['descripcio_programa_1']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_2'], 'value' => trim($_POST['titol_programa_2_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['titol_programa_2']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_2'], 'value' => trim($_POST['descripcio_programa_2_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['descripcio_programa_2']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_3'], 'value' => trim($_POST['titol_programa_3_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['titol_programa_3']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_3'], 'value' => trim($_POST['descripcio_programa_3_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['descripcio_programa_3']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_4'], 'value' => trim($_POST['titol_programa_4_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['titol_programa_4']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_4'], 'value' => trim($_POST['descripcio_programa_4_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['descripcio_programa_4']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_5'], 'value' => trim($_POST['titol_programa_5_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['titol_programa_5']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_5'], 'value' => trim($_POST['descripcio_programa_5_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['descripcio_programa_5']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['preus'], 'value' => trim($_POST['preus_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['preus']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['inclou'], 'value' => trim($_POST['inclou_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['inclou']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['altres_activitats'], 'value' => trim($_POST['altres_activitats_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['altres_activitats']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer'], 'value' => trim($_POST['cases_on_es_pot_fer_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer']) ?? ''))],
+                ['key' => $ACF_FIELD_KEYS['centres']['altres_propostes'], 'value' => trim($_POST['altres_propostes_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['altres_propostes']) ?? ''))],
+                ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)$productId],
+                ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'],
+            ],
+        ];
+
+        $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
+        if ($hasTranslationContent) {
+            if ($titleEs === '' || $descriptionEs === '') {
+                flash('error', 'Cal omplir el títol i la descripció en castellà.');
+            } else {
+                if ($slugEs !== '') {
+                    $payloadEs['slug'] = $slugEs;
+                }
+                $catId = category_id('descoberta', 'centre-interes');
+                if ($catId) {
+                    $payloadEs['categories'] = normalize_categories($translationProduct ?? $product, $catId);
+                }
+
+                if ($translationProduct) {
+                    $translationUpdate = woo_update_product('descoberta', (int)$translationProduct['id'], $payloadEs);
+                    if (!$translationUpdate['success']) {
+                        flash('error', 'No s\'ha pogut actualitzar la versió en castellà: ' . ($translationUpdate['error'] ?? json_encode($translationUpdate['data'])));
+                    }
+                } else {
+                    if (!empty($product['images'])) {
+                        $payloadEs['images'] = $product['images'];
+                    }
+                    $translationCreate = woo_create_product('descoberta', $payloadEs);
+                    if (!$translationCreate['success']) {
+                        flash('error', 'No s\'ha pogut crear la versió en castellà: ' . ($translationCreate['error'] ?? json_encode($translationCreate['data'])));
+                    }
+                }
+            }
+        }
+
         redirect('/centres_interes.php?modal=edit&product_id=' . $productId . '&saved=1');
     } else {
         flash('error', 'No s\'ha pogut actualitzar la fitxa: ' . ($update['error'] ?? json_encode($update['data'])));
@@ -346,6 +447,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
     $create = woo_create_product('descoberta', $payload);
     if ($create['success']) {
+        $createdProduct = $create['data'] ?? [];
+        $titleEs = trim($_POST['title_es'] ?? '');
+        $descriptionEs = trim($_POST['description_es'] ?? '');
+        $statusEs = ($_POST['status_es'] ?? '') === 'draft' ? 'draft' : 'publish';
+        $slugEs = normalize_slug_input($_POST['slug_es'] ?? '');
+
+        $ciclesEs = $_POST['cicles_es'] ?? [];
+        if (!is_array($ciclesEs)) {
+            $ciclesEs = [$ciclesEs];
+        }
+        $ciclesEs = array_values(array_filter(array_map('trim', $ciclesEs)));
+
+        $categoriaEs = $_POST['categoria_es'] ?? [];
+        if (!is_array($categoriaEs)) {
+            $categoriaEs = [$categoriaEs];
+        }
+        $categoriaEs = array_values(array_filter(array_map('trim', $categoriaEs)));
+
+        $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
+        if ($hasTranslationContent) {
+            if ($titleEs === '' || $descriptionEs === '') {
+                flash('error', 'Cal omplir el títol i la descripció en castellà.');
+            } else {
+                $translationPayload = [
+                    'name' => $titleEs,
+                    'status' => $statusEs,
+                    'description' => $descriptionEs,
+                    'categories' => $payload['categories'],
+                    'meta_data' => [
+                        ['key' => $ACF_FIELD_KEYS['centres']['competencies'], 'value' => trim($_POST['competencies_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['metodologia'], 'value' => trim($_POST['metodologia_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['cicles'], 'value' => $ciclesEs],
+                        ['key' => $ACF_FIELD_KEYS['centres']['categoria'], 'value' => $categoriaEs],
+                        ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_1'], 'value' => trim($_POST['titol_programa_1_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_1'], 'value' => trim($_POST['descripcio_programa_1_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_2'], 'value' => trim($_POST['titol_programa_2_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_2'], 'value' => trim($_POST['descripcio_programa_2_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_3'], 'value' => trim($_POST['titol_programa_3_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_3'], 'value' => trim($_POST['descripcio_programa_3_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_4'], 'value' => trim($_POST['titol_programa_4_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_4'], 'value' => trim($_POST['descripcio_programa_4_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['titol_programa_5'], 'value' => trim($_POST['titol_programa_5_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['descripcio_programa_5'], 'value' => trim($_POST['descripcio_programa_5_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['preus'], 'value' => trim($_POST['preus_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['inclou'], 'value' => trim($_POST['inclou_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['altres_activitats'], 'value' => trim($_POST['altres_activitats_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer'], 'value' => trim($_POST['cases_on_es_pot_fer_es'] ?? '')],
+                        ['key' => $ACF_FIELD_KEYS['centres']['altres_propostes'], 'value' => trim($_POST['altres_propostes_es'] ?? '')],
+                        ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)($createdProduct['id'] ?? 0)],
+                        ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'],
+                    ],
+                ];
+                if ($slugEs !== '') {
+                    $translationPayload['slug'] = $slugEs;
+                }
+                if (!empty($createdProduct['images'])) {
+                    $translationPayload['images'] = $createdProduct['images'];
+                }
+                $translationCreate = woo_create_product('descoberta', $translationPayload);
+                if (!$translationCreate['success']) {
+                    flash('error', 'No s\'ha pogut crear la versió en castellà: ' . ($translationCreate['error'] ?? json_encode($translationCreate['data'])));
+                }
+            }
+        }
         redirect('/centres_interes.php?modal=create&created=1');
     } else {
         flash('error', 'Error en crear la fitxa: ' . json_encode($create['data']));
@@ -390,6 +555,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <?php foreach ($products as $product): ?>
                     <?php $dateInfo = formatted_product_date($product['date_modified'] ?? ''); ?>
                     <?php $statusText = status_label($product['status'] ?? ''); ?>
+                    <?php
+                        $translationProduct = find_translation_product($allProducts, (int)($product['id'] ?? 0));
+                        $editorPayload = $product;
+                        $editorPayload['translation'] = $translationProduct ? [
+                            'id' => $translationProduct['id'] ?? 0,
+                            'name' => $translationProduct['name'] ?? '',
+                            'slug' => $translationProduct['slug'] ?? '',
+                            'description' => $translationProduct['description'] ?? '',
+                            'status' => $translationProduct['status'] ?? 'draft',
+                            'meta_data' => $translationProduct['meta_data'] ?? [],
+                            'images' => $translationProduct['images'] ?? [],
+                            'permalink' => $translationProduct['permalink'] ?? '',
+                            'link' => $translationProduct['link'] ?? '',
+                        ] : null;
+                    ?>
                     <tr data-search-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>">
                         <td data-col="title" data-sort-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>"><?php echo htmlspecialchars($product['name'] ?? ''); ?></td>
                         <td data-col="status" data-sort-value="<?php echo htmlspecialchars($statusText); ?>"><?php echo htmlspecialchars($statusText); ?></td>
@@ -400,7 +580,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                     class="icon-btn primary"
                                     title="Editar"
                                     data-open="modalEditCentre"
-                                    data-edit-centre="<?php echo htmlspecialchars(json_encode($product), ENT_QUOTES, 'UTF-8'); ?>"
+                                    data-edit-centre="<?php echo htmlspecialchars(json_encode($editorPayload), ENT_QUOTES, 'UTF-8'); ?>"
                                     data-centre-id="<?php echo htmlspecialchars((string)($product['id'] ?? '')); ?>">
                                 <i class="fa fa-pen"></i>
                             </button>
@@ -431,13 +611,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <?php if ($modalState === 'edit' && $modalMessage): ?>
                     <div class="alert success"><?php echo htmlspecialchars($modalMessage); ?></div>
                 <?php endif; ?>
-                <form class="form-card" method="POST" enctype="multipart/form-data">
+                <form class="form-card" method="POST" enctype="multipart/form-data" data-language-scope>
                     <input type="hidden" name="product_action" value="edit_product">
                     <input type="hidden" name="product_id">
                     <input type="hidden" name="status">
                     <input type="hidden" name="existing_image_id">
                     <input type="hidden" name="existing_image_src">
+                    <input type="hidden" name="product_id_es">
+                    <input type="hidden" name="status_es">
 
+                    <div class="language-toggle" data-language-toggle data-default-lang="ca">
+                        <button type="button" data-lang="ca">Català</button>
+                        <button type="button" data-lang="es">Castellà</button>
+                    </div>
+
+                    <div class="language-panel" data-language-panel data-lang="ca">
                     <label>Títol del producte <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
@@ -593,6 +781,165 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres propostes semblants"></div>
                         <textarea name="altres_propostes" class="rich" rows="4"></textarea>
                     </div>
+                    </div>
+
+                    <div class="language-panel" data-language-panel data-lang="es">
+                        <label>Título del producto</label>
+                        <input type="text" name="title_es">
+
+                        <label>URL</label>
+                        <input type="text" name="slug_es" placeholder="ejemplo-url">
+
+                        <label>Descripción</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció (Castellà)"></div>
+                            <textarea name="description_es" class="rich" rows="4"></textarea>
+                        </div>
+
+                        <div class="two-columns">
+                            <div>
+                                <label>Ciclos</label>
+                                <select name="cicles_es[]" multiple>
+                                    <?php foreach ($CICLES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona uno o más ciclos</p>
+                            </div>
+                            <div>
+                                <label>Categoría</label>
+                                <select name="categoria_es[]" multiple>
+                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona una o más categorías</p>
+                            </div>
+                        </div>
+
+                        <label>Competencias</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències (Castellà)"></div>
+                            <textarea name="competencies_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Metodología</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Metodologia (Castellà)"></div>
+                            <textarea name="metodologia_es" class="rich" rows="4"></textarea>
+                        </div>
+
+                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                            <div class="program-section">
+                                <label>Título programa <?php echo $i; ?></label>
+                                <input type="text" name="titol_programa_<?php echo $i; ?>_es">
+
+                                <label>Descripción programa <?php echo $i; ?></label>
+                                <div class="rich-wrapper" data-rich-editor data-grid-enabled="true">
+                                    <div class="rich-toolbar">
+                                        <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                        <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                        <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                        <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                        <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                        <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                                        <button type="button" data-grid-picker title="Inserir graella"><i class="fa fa-table"></i></button>
+                                    </div>
+                                    <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció programa <?php echo $i; ?> (Castellà)"></div>
+                                    <textarea name="descripcio_programa_<?php echo $i; ?>_es" class="rich" rows="3"></textarea>
+                                </div>
+                            </div>
+                        <?php endfor; ?>
+
+                        <label>Precios</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Preus (Castellà)"></div>
+                            <textarea name="preus_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Incluye</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Inclou (Castellà)"></div>
+                            <textarea name="inclou_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Otras actividades</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres activitats (Castellà)"></div>
+                            <textarea name="altres_activitats_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Casas donde se puede realizar el centro de interés</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Cases on es pot fer el centre d'interès (Castellà)"></div>
+                            <textarea name="cases_on_es_pot_fer_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Otras propuestas similares</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres propostes semblants (Castellà)"></div>
+                            <textarea name="altres_propostes_es" class="rich" rows="4"></textarea>
+                        </div>
+                    </div>
 
                     <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
@@ -623,71 +970,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                 <?php if ($modalState === 'create' && $modalMessage): ?>
                     <div class="alert success"><?php echo htmlspecialchars($modalMessage); ?></div>
                 <?php endif; ?>
-                <form class="form-card" method="POST" enctype="multipart/form-data">
-                    <label>Títol del producte <span class="required-asterisk">*</span></label>
-                    <input type="text" name="title" required>
-
-                    <label>Descripció <span class="required-asterisk">*</span></label>
-                    <div class="rich-wrapper" data-rich-editor>
-                        <div class="rich-toolbar">
-                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
-                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
-                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
-                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
-                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
-                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
-                        </div>
-                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
-                        <textarea name="description" class="rich" rows="4" required></textarea>
+                <form class="form-card" method="POST" enctype="multipart/form-data" data-language-scope>
+                    <div class="language-toggle" data-language-toggle data-default-lang="ca">
+                        <button type="button" data-lang="ca">Català</button>
+                        <button type="button" data-lang="es">Castellà</button>
                     </div>
 
-                    <div class="two-columns">
-                        <div>
-                            <label>Cicles</label>
-                            <select name="cicles[]" multiple required>
-                                <?php foreach ($CICLES_OPTIONS as $opt): ?>
-                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="hint">Selecciona un o més cicles</p>
-                        </div>
-                        <div>
-                            <label>Categoria</label>
-                            <select name="categoria[]" multiple required>
-                                <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <p class="hint">Selecciona una o més categories</p>
-                        </div>
-                    </div>
+                    <div class="language-panel" data-language-panel data-lang="ca">
+                        <label>Títol del producte <span class="required-asterisk">*</span></label>
+                        <input type="text" name="title" required>
 
-                    <label>Competències</label>
-                    <div class="rich-wrapper" data-rich-editor>
-                        <div class="rich-toolbar">
-                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
-                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
-                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
-                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
-                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
-                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                        <label>Descripció <span class="required-asterisk">*</span></label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció"></div>
+                            <textarea name="description" class="rich" rows="4" required></textarea>
                         </div>
-                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències"></div>
-                        <textarea name="competencies" class="rich" rows="4"></textarea>
-                    </div>
-                    <label>Metodologia</label>
-                    <div class="rich-wrapper" data-rich-editor>
-                        <div class="rich-toolbar">
-                            <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
-                            <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
-                            <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
-                            <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
-                            <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
-                            <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+
+                        <div class="two-columns">
+                            <div>
+                                <label>Cicles</label>
+                                <select name="cicles[]" multiple required>
+                                    <?php foreach ($CICLES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona un o més cicles</p>
+                            </div>
+                            <div>
+                                <label>Categoria</label>
+                                <select name="categoria[]" multiple required>
+                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona una o més categories</p>
+                            </div>
                         </div>
-                        <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Metodologia"></div>
-                        <textarea name="metodologia" class="rich" rows="4"></textarea>
-                    </div>
+
+                        <label>Competències</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències"></div>
+                            <textarea name="competencies" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Metodologia</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negreta"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subratllat"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enllaç"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacat"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Llista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Metodologia"></div>
+                            <textarea name="metodologia" class="rich" rows="4"></textarea>
+                        </div>
 
                     <?php for ($i = 1; $i <= 5; $i++): ?>
                         <div class="program-section">
@@ -776,6 +1129,73 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Altres propostes semblants"></div>
                         <textarea name="altres_propostes" class="rich" rows="4"></textarea>
                     </div>
+                    </div>
+
+                    <div class="language-panel" data-language-panel data-lang="es">
+                        <label>Título del producto</label>
+                        <input type="text" name="title_es">
+
+                        <label>Descripción</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Descripció (Castellà)"></div>
+                            <textarea name="description_es" class="rich" rows="4"></textarea>
+                        </div>
+
+                        <div class="two-columns">
+                            <div>
+                                <label>Ciclos</label>
+                                <select name="cicles_es[]" multiple>
+                                    <?php foreach ($CICLES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona uno o más ciclos</p>
+                            </div>
+                            <div>
+                                <label>Categoría</label>
+                                <select name="categoria_es[]" multiple>
+                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
+                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="hint">Selecciona una o más categorías</p>
+                            </div>
+                        </div>
+
+                        <label>Competencias</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Competències (Castellà)"></div>
+                            <textarea name="competencies_es" class="rich" rows="4"></textarea>
+                        </div>
+                        <label>Metodología</label>
+                        <div class="rich-wrapper" data-rich-editor>
+                            <div class="rich-toolbar">
+                                <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
+                                <button type="button" data-command="italic" title="Cursiva"><i class="fa fa-italic"></i></button>
+                                <button type="button" data-command="underline" title="Subrayado"><i class="fa fa-underline"></i></button>
+                                <button type="button" data-command="createLink" title="Enlace"><i class="fa fa-link"></i></button>
+                                <button type="button" data-command="foreColor" data-value="#4f46e5" title="Color destacado"><i class="fa fa-palette"></i></button>
+                                <button type="button" data-command="insertUnorderedList" title="Lista"><i class="fa fa-list-ul"></i></button>
+                            </div>
+                            <div class="rich-editor" contenteditable="true" aria-label="Editor ric per Metodologia (Castellà)"></div>
+                            <textarea name="metodologia_es" class="rich" rows="4"></textarea>
+                        </div>
 
                     <label>Imatge destacada</label>
                     <input type="file" name="featured_file" accept="image/*">
