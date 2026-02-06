@@ -611,6 +611,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $translationPayload['meta_data'][] = ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)$productId];
                     $translationPayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'];
+                    $translationPayload['lang'] = 'es';
                     if ($normativaVal !== '') {
                         $translationPayload['meta_data'][] = ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal];
                     }
@@ -699,6 +700,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $translationPayload['categories'] = $payload['categories'];
                     $translationPayload['meta_data'][] = ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)($createdProduct['id'] ?? 0)];
                     $translationPayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'];
+                    $translationPayload['lang'] = 'es';
                     if ($normativaVal !== '') {
                         $translationPayload['meta_data'][] = ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal];
                     }
@@ -1271,13 +1273,13 @@ usort($cases, function ($a, $b) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
-                        <label>Título</label>
+                        <label>Título <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
                         <label>URL</label>
                         <input type="text" name="slug_es" placeholder="ejemplo-url">
 
-                        <label>Descripción</label>
+                        <label>Descripción <span class="required-asterisk">*</span></label>
                         <div class="rich-wrapper" data-rich-editor>
                             <div class="rich-toolbar">
                                 <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
@@ -1648,10 +1650,10 @@ usort($cases, function ($a, $b) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
-                        <label>Título</label>
+                        <label>Título <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
-                        <label>Descripción</label>
+                        <label>Descripción <span class="required-asterisk">*</span></label>
                         <div class="rich-wrapper" data-rich-editor>
                             <div class="rich-toolbar">
                                 <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
