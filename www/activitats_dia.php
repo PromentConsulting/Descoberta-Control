@@ -274,6 +274,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
                     'name' => $titleEs,
                     'status' => $statusEs,
                     'description' => $descriptionEs,
+                    'lang' => 'es',
                     'categories' => [],
                     'meta_data' => [
                         ['key' => $ACF_FIELD_KEYS['activitats']['cicles'], 'value' => $ciclesEs],
@@ -412,6 +413,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     'name' => $titleEs,
                     'status' => $statusEs,
                     'description' => $descriptionEs,
+                    'lang' => 'es',
                     'categories' => $payload['categories'],
                     'meta_data' => [
                         ['key' => $ACF_FIELD_KEYS['activitats']['cicles'], 'value' => $ciclesEs],
@@ -649,13 +651,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
-                        <label>Título del producto</label>
+                        <label>Título del producto <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
                         <label>URL</label>
                         <input type="text" name="slug_es" placeholder="ejemplo-url">
 
-                        <label>Descripción</label>
+                        <label>Descripción <span class="required-asterisk">*</span></label>
                         <div class="rich-wrapper" data-rich-editor>
                             <div class="rich-toolbar">
                                 <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>
@@ -873,10 +875,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
-                        <label>Título del producto</label>
+                        <label>Título del producto <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
-                        <label>Descripción</label>
+                        <label>Descripción <span class="required-asterisk">*</span></label>
                         <div class="rich-wrapper" data-rich-editor>
                             <div class="rich-toolbar">
                                 <button type="button" data-command="bold" title="Negrita"><i class="fa fa-bold"></i></button>

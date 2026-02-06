@@ -642,6 +642,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         event.preventDefault();
                         return;
                     }
+                    if (event.dataTransfer) {
+                        event.dataTransfer.setData('text/plain', '');
+                        event.dataTransfer.effectAllowed = 'move';
+                    }
                     draggingGalleryItem = item;
                     item.classList.add('dragging');
                 });
@@ -852,6 +856,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!event.target.closest('.drag-handle')) {
                     event.preventDefault();
                     return;
+                }
+                if (event.dataTransfer) {
+                    event.dataTransfer.setData('text/plain', '');
+                    event.dataTransfer.effectAllowed = 'move';
                 }
                 draggingRow = row;
                 row.classList.add('dragging');
