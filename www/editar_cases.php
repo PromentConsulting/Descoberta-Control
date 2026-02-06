@@ -457,18 +457,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['product_action'] ?? '';
 
     if ($action === 'update_case_order') {
-        $order = json_decode($_POST['order'] ?? '[]', true);
-        if (!is_array($order)) {
-            $order = [];
+        $orderNumbers = $_POST['order_numbers'] ?? [];
+        if (!is_array($orderNumbers)) {
+            $orderNumbers = [];
         }
         $errors = [];
-        foreach ($order as $index => $caseId) {
+        foreach ($orderNumbers as $caseId => $orderNumber) {
             $caseId = (int)$caseId;
             if ($caseId <= 0) {
                 continue;
             }
+            $orderValue = max(0, (int)$orderNumber - 1);
             $update = woo_update_product('descoberta', $caseId, [
-                'menu_order' => $index,
+                'menu_order' => $orderValue,
             ]);
             if (!$update['success']) {
                 $errors[] = $caseId;
@@ -562,6 +563,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         $payload['meta_data'][] = ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal];
+        $payload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'];
+        $payload['lang'] = 'ca';
 
         $removedGallery = json_decode($_POST['removed_gallery_images'] ?? '[]', true);
         if (!is_array($removedGallery)) {
@@ -581,6 +584,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $update = woo_update_product('descoberta', $productId, $payload);
 
+        $preuCatId = null;
         $preuDuplicate = find_product_by_meta_value($allProducts, PREU_LINK_META_KEY, (string)$productId);
         if ($preuDuplicate) {
             $duplicatePayload = $payload;
@@ -593,6 +597,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $duplicatePayload['slug'] = $baseSlug . '-preus';
             }
             $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$productId];
+            $duplicatePayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'];
+            $duplicatePayload['lang'] = 'ca';
             $dupUpdate = woo_update_product('descoberta', (int)$preuDuplicate['id'], $duplicatePayload);
             if (!$dupUpdate['success']) {
                 flash('error', 'No s\'ha pogut actualitzar la casa duplicada de preus: ' . ($dupUpdate['error'] ?? json_encode($dupUpdate['data'])));
@@ -638,6 +644,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
+            if ($preuDuplicate && $preuCatId && !empty($translationProduct)) {
+                $preuTranslation = find_translation_product($allProducts, (int)$preuDuplicate['id']);
+                $preuTranslationPayload = $translationPayload;
+                $preuTranslationPayload['categories'] = [['id' => $preuCatId]];
+                if (!empty($translationPayload['slug'])) {
+                    $translationBaseSlug = preg_replace('/-preus$/', '', $translationPayload['slug']);
+                    $preuTranslationPayload['slug'] = $translationBaseSlug . '-preus';
+                }
+                $preuTranslationPayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$translationProduct['id']];
+                $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)$preuDuplicate['id']];
+                $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'];
+                $preuTranslationPayload['lang'] = 'es';
+                if (!empty($duplicatePayload['images'])) {
+                    $preuTranslationPayload['images'] = $duplicatePayload['images'];
+                }
+                if ($imagesResult['thumbnail_id']) {
+                    $preuTranslationPayload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
+                }
+                if ($preuTranslation) {
+                    $preuTranslationUpdate = woo_update_product('descoberta', (int)$preuTranslation['id'], $preuTranslationPayload);
+                    if (!$preuTranslationUpdate['success']) {
+                        flash('error', 'No s\'ha pogut actualitzar la traducció de preus en castellà: ' . ($preuTranslationUpdate['error'] ?? json_encode($preuTranslationUpdate['data'])));
+                    }
+                } else {
+                    $preuTranslationCreate = woo_create_product('descoberta', $preuTranslationPayload);
+                    if (!$preuTranslationCreate['success']) {
+                        flash('error', 'No s\'ha pogut crear la traducció de preus en castellà: ' . ($preuTranslationCreate['error'] ?? json_encode($preuTranslationCreate['data'])));
+                    }
+                }
+            }
             flash('success', 'Casa actualitzada correctament');
         } else {
             flash('error', 'No s\'ha pogut actualitzar la casa: ' . ($update['error'] ?? json_encode($update['data'])));
@@ -670,6 +706,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $payload['status'] = 'publish';
         $payload['categories'] = [];
         $payload['meta_data'][] = ['key' => $caseKeys['normativa'] ?? 'normativa_de_la_casa', 'value' => $normativaVal];
+        $payload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'];
+        $payload['lang'] = 'ca';
 
         $imagesResult = prepare_case_images([], $featuredUrl, 0, '', []);
         if ($imagesResult['changed']) {
@@ -691,6 +729,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $translationData = build_case_payload_from_request($caseKeys, [], 'es');
             $translationPayload = $translationData['payload'];
             $hasTranslationContent = $translationData['title'] !== '' || $translationData['description'] !== '';
+            $translationCreatedProduct = null;
 
             if ($hasTranslationContent) {
                 if ($translationData['title'] === '' || $translationData['description'] === '') {
@@ -713,6 +752,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $translationPayload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
                     }
                     $translationCreate = woo_create_product('descoberta', $translationPayload);
+                    if ($translationCreate['success']) {
+                        $translationCreatedProduct = $translationCreate['data'] ?? null;
+                    }
                     if (!$translationCreate['success']) {
                         flash('error', 'No s\'ha pogut crear la traducció en castellà: ' . ($translationCreate['error'] ?? json_encode($translationCreate['data'])));
                     }
@@ -727,6 +769,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $duplicatePayload['slug'] = $baseSlug . '-preus';
                 }
                 $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$createdProduct['id']];
+                $duplicatePayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'];
+                $duplicatePayload['lang'] = 'ca';
                 if (!empty($imagesResult['images'])) {
                     $duplicatePayload['images'] = $imagesResult['images'];
                 }
@@ -736,6 +780,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $duplicate = woo_create_product('descoberta', $duplicatePayload);
                 if (!$duplicate['success']) {
                     flash('error', 'No s\'ha pogut crear la casa duplicada de preus: ' . ($duplicate['error'] ?? json_encode($duplicate['data'])));
+                } elseif ($translationCreatedProduct) {
+                    $preuTranslationPayload = $translationPayload;
+                    $preuTranslationPayload['categories'] = [['id' => $preuCatId]];
+                    if (!empty($translationPayload['slug'])) {
+                        $translationBaseSlug = preg_replace('/-preus$/', '', $translationPayload['slug']);
+                        $preuTranslationPayload['slug'] = $translationBaseSlug . '-preus';
+                    }
+                    $preuTranslationPayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)($translationCreatedProduct['id'] ?? 0)];
+                    $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)($duplicate['data']['id'] ?? 0)];
+                    $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'];
+                    $preuTranslationPayload['lang'] = 'es';
+                    if (!empty($imagesResult['images'])) {
+                        $preuTranslationPayload['images'] = $imagesResult['images'];
+                    } elseif (!empty($duplicate['data']['images'])) {
+                        $preuTranslationPayload['images'] = $duplicate['data']['images'];
+                    }
+                    if ($imagesResult['thumbnail_id']) {
+                        $preuTranslationPayload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
+                    }
+                    $preuTranslationCreate = woo_create_product('descoberta', $preuTranslationPayload);
+                    if (!$preuTranslationCreate['success']) {
+                        flash('error', 'No s\'ha pogut crear la traducció de preus en castellà: ' . ($preuTranslationCreate['error'] ?? json_encode($preuTranslationCreate['data'])));
+                    }
                 }
             }
 
@@ -992,12 +1059,11 @@ usort($cases, function ($a, $b) {
     </div>
 
     <div class="actions-row">
-        <button type="button" class="btn secondary" data-save-case-order>Desar ordre</button>
-        <p class="hint">Arrossega les files amb l'icona per canviar l'ordre.</p>
+        <button type="submit" class="btn secondary" form="case-order-form">Desar ordre</button>
+        <p class="hint">Introdueix un número per definir l'ordre de les cases.</p>
     </div>
-    <form method="POST" class="inline-form" data-order-form>
+    <form method="POST" class="inline-form" id="case-order-form" data-order-form>
         <input type="hidden" name="product_action" value="update_case_order">
-        <input type="hidden" name="order" value="[]">
     </form>
 
     <div class="table-wrapper scrollable">
@@ -1031,9 +1097,15 @@ usort($cases, function ($a, $b) {
                 ?>
                     <tr class="<?php echo $highlight ? 'highlight' : ''; ?>" data-search-value="<?php echo htmlspecialchars(strtolower($case['name'])); ?>" data-order-id="<?php echo $case['id']; ?>">
                         <td>
-                            <span class="drag-handle" title="Arrossega per ordenar">
-                                <i class="fa fa-grip-vertical"></i> Mou
-                            </span>
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                name="order_numbers[<?php echo $case['id']; ?>]"
+                                value="<?php echo (int)($case['menu_order'] ?? 0) + 1; ?>"
+                                class="order-input"
+                                form="case-order-form"
+                            >
                         </td>
                         <td><?php echo htmlspecialchars($case['name']); ?></td>
                         <td>
