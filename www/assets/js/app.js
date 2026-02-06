@@ -685,27 +685,28 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         if (galleryGrid) {
-            const getGalleryAfterElement = (container, y) => {
-                const items = [...container.querySelectorAll('.gallery-item:not(.dragging)')];
-                return items.reduce((closest, child) => {
-                    const box = child.getBoundingClientRect();
-                    const offset = y - box.top - box.height / 2;
-                    if (offset < 0 && offset > closest.offset) {
-                        return { offset, element: child };
-                    }
-                    return closest;
-                }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+            const insertGalleryItem = (target, event) => {
+                if (!draggingGalleryItem || !target || target === draggingGalleryItem) return;
+                const rect = target.getBoundingClientRect();
+                const isAfter =
+                    event.clientY > rect.top + rect.height / 2 ||
+                    event.clientX > rect.left + rect.width / 2;
+                if (isAfter) {
+                    target.after(draggingGalleryItem);
+                } else {
+                    target.before(draggingGalleryItem);
+                }
             };
 
             galleryGrid.addEventListener('dragover', (event) => {
                 event.preventDefault();
                 if (!draggingGalleryItem) return;
-                const afterElement = getGalleryAfterElement(galleryGrid, event.clientY);
-                if (afterElement == null) {
+                const target = event.target?.closest('.gallery-item');
+                if (!target) {
                     galleryGrid.appendChild(draggingGalleryItem);
-                } else {
-                    galleryGrid.insertBefore(draggingGalleryItem, afterElement);
+                    return;
                 }
+                insertGalleryItem(target, event);
             });
         }
 
@@ -827,68 +828,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const initCaseOrdering = () => {
-        const table = document.querySelector('[data-orderable-table]');
-        const orderForm = document.querySelector('[data-order-form]');
-        const orderInput = orderForm?.querySelector('[name="order"]');
-        const saveButton = document.querySelector('[data-save-case-order]');
-        if (!table || !orderForm || !orderInput || !saveButton) return;
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-
-        let draggingRow = null;
-
-        const getDragAfterElement = (container, y) => {
-            const draggableElements = [...container.querySelectorAll('tr:not(.dragging)')];
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset, element: child };
-                }
-                return closest;
-            }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
-        };
-
-        tbody.querySelectorAll('tr').forEach(row => {
-            row.draggable = true;
-            row.addEventListener('dragstart', (event) => {
-                if (!event.target.closest('.drag-handle')) {
-                    event.preventDefault();
-                    return;
-                }
-                if (event.dataTransfer) {
-                    event.dataTransfer.setData('text/plain', '');
-                    event.dataTransfer.effectAllowed = 'move';
-                }
-                draggingRow = row;
-                row.classList.add('dragging');
-            });
-            row.addEventListener('dragend', () => {
-                row.classList.remove('dragging');
-                draggingRow = null;
-            });
-        });
-
-        tbody.addEventListener('dragover', (event) => {
-            event.preventDefault();
-            const afterElement = getDragAfterElement(tbody, event.clientY);
-            if (!draggingRow) return;
-            if (afterElement == null) {
-                tbody.appendChild(draggingRow);
-            } else {
-                tbody.insertBefore(draggingRow, afterElement);
-            }
-        });
-
-        saveButton.addEventListener('click', () => {
-            const order = Array.from(tbody.querySelectorAll('tr'))
-                .map(row => row.dataset.orderId)
-                .filter(Boolean);
-            orderInput.value = JSON.stringify(order);
-            orderForm.submit();
-        });
-    };
 
     initRangeFilters();
     initTableSearch();
@@ -897,5 +836,4 @@ document.addEventListener("DOMContentLoaded", () => {
     initCentreEditor();
     openCentreModalFromUrl();
     initCaseEditor();
-    initCaseOrdering();
 });
