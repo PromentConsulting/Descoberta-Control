@@ -3,6 +3,7 @@
 
 define('TRANSLATION_PARENT_META_KEY', 'translation_parent_id');
 define('TRANSLATION_LANG_META_KEY', 'translation_lang');
+define('TRANSLATION_CHILD_META_KEY', 'translation_child_id');
 
 define('ADMIN_SEED', [
     'username' => 'admin',
