@@ -468,11 +468,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 continue;
             }
             $orderValue = max(0, (int)$orderNumber - 1);
-            $update = woo_update_product('descoberta', $caseId, [
-                'menu_order' => $orderValue,
-            ]);
-            if (!$update['success']) {
-                $errors[] = $caseId;
+            $updates = [
+                ['id' => $caseId, 'label' => 'base'],
+            ];
+            $translation = find_translation_product($allProducts, $caseId);
+            if ($translation) {
+                $updates[] = ['id' => (int)$translation['id'], 'label' => 'traducció'];
+            }
+            $preuDuplicate = find_product_by_meta_value($allProducts, PREU_LINK_META_KEY, (string)$caseId);
+            if ($preuDuplicate) {
+                $updates[] = ['id' => (int)$preuDuplicate['id'], 'label' => 'preu'];
+                $preuTranslation = find_translation_product($allProducts, (int)$preuDuplicate['id']);
+                if ($preuTranslation) {
+                    $updates[] = ['id' => (int)$preuTranslation['id'], 'label' => 'preu traduït'];
+                }
+            }
+            foreach ($updates as $target) {
+                $update = woo_update_product('descoberta', (int)$target['id'], [
+                    'menu_order' => $orderValue,
+                ]);
+                if (!$update['success']) {
+                    $errors[] = $target['id'] . ' (' . $target['label'] . ')';
+                }
             }
         }
         if ($errors) {
@@ -610,6 +627,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $translationData = build_case_payload_from_request($caseKeys, $translationProduct ?? [], 'es');
             $translationPayload = $translationData['payload'];
             $hasTranslationContent = $translationData['title'] !== '' || $translationData['description'] !== '';
+            $translationCreatedProduct = null;
 
             if ($hasTranslationContent) {
                 if ($translationData['title'] === '' || $translationData['description'] === '') {
@@ -638,13 +656,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         }
                         $translationPayload['status'] = $currentCase['status'] ?? 'publish';
                         $translationCreate = woo_create_product('descoberta', $translationPayload);
+                        if ($translationCreate['success']) {
+                            $translationCreatedProduct = $translationCreate['data'] ?? null;
+                        }
                         if (!$translationCreate['success']) {
                             flash('error', 'No s\'ha pogut crear la traducció en castellà: ' . ($translationCreate['error'] ?? json_encode($translationCreate['data'])));
                         }
                     }
                 }
             }
-            if ($preuDuplicate && $preuCatId && !empty($translationProduct)) {
+            $translationReference = $translationProduct ?? $translationCreatedProduct;
+            if ($preuDuplicate && $preuCatId && !empty($translationReference)) {
                 $preuTranslation = find_translation_product($allProducts, (int)$preuDuplicate['id']);
                 $preuTranslationPayload = $translationPayload;
                 $preuTranslationPayload['categories'] = [['id' => $preuCatId]];
@@ -652,7 +674,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $translationBaseSlug = preg_replace('/-preus$/', '', $translationPayload['slug']);
                     $preuTranslationPayload['slug'] = $translationBaseSlug . '-preus';
                 }
-                $preuTranslationPayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$translationProduct['id']];
+                $preuTranslationPayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)($translationReference['id'] ?? 0)];
                 $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_PARENT_META_KEY, 'value' => (string)$preuDuplicate['id']];
                 $preuTranslationPayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'es'];
                 $preuTranslationPayload['lang'] = 'es';
@@ -1516,6 +1538,7 @@ usort($cases, function ($a, $b) {
                     <input type="url" name="featured_url" placeholder="https://...">
 
                     <label>Galeria d'imatges</label>
+                    <p class="hint">Ordena les imatges indicant el número d'ordre.</p>
                     <div class="gallery-manager">
                         <div class="gallery-grid" data-gallery-grid></div>
                         <div>

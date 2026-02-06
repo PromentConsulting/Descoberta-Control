@@ -224,8 +224,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
             ['key' => $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer'], 'value' => trim($_POST['cases_on_es_pot_fer'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['altres_propostes'], 'value' => trim($_POST['altres_propostes'] ?? (string)(meta_value($product, $ACF_FIELD_KEYS['centres']['altres_propostes']) ?? ''))],
             ['key' => $ACF_FIELD_KEYS['centres']['logotip_ods'], 'value' => meta_value($product, $ACF_FIELD_KEYS['centres']['logotip_ods']) ?? ''],
+            ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'],
         ],
     ];
+    $payload['lang'] = 'ca';
     if ($slug !== '') {
         $payload['slug'] = $slug;
     }
@@ -409,8 +411,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
             ['key' => $ACF_FIELD_KEYS['centres']['altres_activitats'], 'value' => trim($_POST['altres_activitats'] ?? '')],
             ['key' => $ACF_FIELD_KEYS['centres']['cases_on_es_pot_fer'], 'value' => trim($_POST['cases_on_es_pot_fer'] ?? '')],
             ['key' => $ACF_FIELD_KEYS['centres']['altres_propostes'], 'value' => trim($_POST['altres_propostes'] ?? '')],
+            ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'],
         ],
     ];
+    $payload['lang'] = 'ca';
 
     if ($title === '' || $description === '') {
         flash('error', 'Cal omplir el títol i la descripció.');

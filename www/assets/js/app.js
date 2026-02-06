@@ -560,7 +560,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const preuLinkGenerate = preuLinkWrapper?.querySelector('[data-preu-link-generate]');
         const preuGenerateForm = modal.querySelector('[data-preu-generate-form]');
         let removedGallery = [];
-        let draggingGalleryItem = null;
 
         const setSelectValue = (select, value) => {
             if (!select) return;
@@ -579,13 +578,36 @@ document.addEventListener("DOMContentLoaded", () => {
             normativaHint.textContent = value ? `Fitxer actual: ${value}` : 'No hi ha cap fitxer pujat.';
         };
 
-        const updateGalleryOrder = () => {
+        const updateGalleryOrder = (reorderDom = true) => {
             if (!galleryGrid || !galleryOrderInput) return;
-            const order = Array.from(galleryGrid.querySelectorAll('.gallery-item')).map(item => ({
-                id: item.dataset.imageId ? Number(item.dataset.imageId) : null,
-                src: item.dataset.imageSrc || ''
-            }));
-            galleryOrderInput.value = JSON.stringify(order);
+            const items = Array.from(galleryGrid.querySelectorAll('.gallery-item')).map((item, index) => {
+                const orderInput = item.querySelector('[data-gallery-order-input]');
+                const rawOrder = orderInput ? Number(orderInput.value) : NaN;
+                const order = Number.isFinite(rawOrder) && rawOrder > 0 ? rawOrder : index + 1;
+                return {
+                    item,
+                    order,
+                    index,
+                    id: item.dataset.imageId ? Number(item.dataset.imageId) : null,
+                    src: item.dataset.imageSrc || ''
+                };
+            });
+
+            items.sort((a, b) => {
+                if (a.order === b.order) {
+                    return a.index - b.index;
+                }
+                return a.order - b.order;
+            });
+
+            if (reorderDom) {
+                items.forEach(entry => galleryGrid.appendChild(entry.item));
+            }
+
+            galleryOrderInput.value = JSON.stringify(items.map(entry => ({
+                id: entry.id,
+                src: entry.src
+            })));
         };
 
         const renderGallery = (images) => {
@@ -602,10 +624,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            images.forEach(image => {
+            images.forEach((image, index) => {
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
-                item.draggable = true;
                 item.dataset.imageId = image.id || '';
                 item.dataset.imageSrc = image.src || '';
 
@@ -632,29 +653,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 item.appendChild(remove);
 
-                const handle = document.createElement('span');
-                handle.className = 'gallery-handle';
-                handle.innerHTML = '<i class="fa fa-grip-lines"></i> Arrossega';
-                item.appendChild(handle);
-
-                item.addEventListener('dragstart', (event) => {
-                    if (!event.target.closest('.gallery-handle')) {
-                        event.preventDefault();
-                        return;
-                    }
-                    if (event.dataTransfer) {
-                        event.dataTransfer.setData('text/plain', '');
-                        event.dataTransfer.effectAllowed = 'move';
-                    }
-                    draggingGalleryItem = item;
-                    item.classList.add('dragging');
-                });
-
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                    draggingGalleryItem = null;
-                    updateGalleryOrder();
-                });
+                const orderWrapper = document.createElement('div');
+                orderWrapper.className = 'gallery-order';
+                const orderLabel = document.createElement('label');
+                orderLabel.textContent = 'Ordre';
+                const orderInput = document.createElement('input');
+                orderInput.type = 'number';
+                orderInput.min = '1';
+                orderInput.value = String(index + 1);
+                orderInput.className = 'gallery-order-input';
+                orderInput.setAttribute('data-gallery-order-input', '');
+                orderInput.addEventListener('input', () => updateGalleryOrder());
+                orderWrapper.appendChild(orderLabel);
+                orderWrapper.appendChild(orderInput);
+                item.appendChild(orderWrapper);
 
                 galleryGrid.appendChild(item);
             });
@@ -685,28 +697,10 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         if (galleryGrid) {
-            const insertGalleryItem = (target, event) => {
-                if (!draggingGalleryItem || !target || target === draggingGalleryItem) return;
-                const rect = target.getBoundingClientRect();
-                const isAfter =
-                    event.clientY > rect.top + rect.height / 2 ||
-                    event.clientX > rect.left + rect.width / 2;
-                if (isAfter) {
-                    target.after(draggingGalleryItem);
-                } else {
-                    target.before(draggingGalleryItem);
+            galleryGrid.addEventListener('input', (event) => {
+                if (event.target?.matches('[data-gallery-order-input]')) {
+                    updateGalleryOrder();
                 }
-            };
-
-            galleryGrid.addEventListener('dragover', (event) => {
-                event.preventDefault();
-                if (!draggingGalleryItem) return;
-                const target = event.target?.closest('.gallery-item');
-                if (!target) {
-                    galleryGrid.appendChild(draggingGalleryItem);
-                    return;
-                }
-                insertGalleryItem(target, event);
             });
         }
 
