@@ -14,6 +14,27 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.overflow = 'hidden';
         }
     };
+    const initLanguageToggles = () => {
+        document.querySelectorAll('[data-language-scope]').forEach(scope => {
+            const toggle = scope.querySelector('[data-language-toggle]');
+            if (!toggle) return;
+            const buttons = toggle.querySelectorAll('[data-lang]');
+            const panels = scope.querySelectorAll('[data-language-panel]');
+            if (!buttons.length || !panels.length) return;
+
+            const setActive = (lang) => {
+                buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+                panels.forEach(panel => panel.classList.toggle('active', panel.dataset.lang === lang));
+            };
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => setActive(btn.dataset.lang));
+            });
+
+            const defaultLang = toggle.dataset.defaultLang || 'ca';
+            setActive(defaultLang);
+        });
+    };
     document.querySelectorAll('[data-open]').forEach(btn => {
         btn.addEventListener('click', () => {
             const target = document.getElementById(btn.dataset.open);
@@ -295,6 +316,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
+                const translationIdInput = form.querySelector('[name="product_id_es"]');
+                if (translationIdInput) {
+                    translationIdInput.value = product.translation?.id || '';
+                }
                 const slugInput = form.querySelector('[name="slug"]');
                 if (slugInput) slugInput.value = slugFromProduct(product);
                 setRichContent(form.querySelector('[name="description"]').closest('[data-rich-editor]'), product.description || '');
@@ -315,6 +340,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
                 form.querySelector('[name="featured_url"]').value = firstImage.src || '';
 
+                if (product.translation) {
+                    const translation = product.translation;
+                    const statusEsInput = form.querySelector('[name="status_es"]');
+                    if (statusEsInput) statusEsInput.value = translation.status || 'draft';
+                    const titleEsInput = form.querySelector('[name="title_es"]');
+                    if (titleEsInput) titleEsInput.value = translation.name || '';
+                    const slugInputEs = form.querySelector('[name="slug_es"]');
+                    if (slugInputEs) slugInputEs.value = slugFromProduct(translation);
+                    setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), translation.description || '');
+
+                    const ciclesEs = metaValue(translation, window.ACTIVITAT_META_KEYS.cicles) || [];
+                    const categoriaEs = metaValue(translation, window.ACTIVITAT_META_KEYS.categoria) || [];
+                    setSelectValues(form.querySelector('select[name="cicles_es[]"]'), Array.isArray(ciclesEs) ? ciclesEs : []);
+                    setSelectValues(form.querySelector('select[name="categoria_es[]"]'), Array.isArray(categoriaEs) ? categoriaEs : []);
+
+                    setRichContent(form.querySelector('[name="continguts_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.continguts) || '');
+                    setRichContent(form.querySelector('[name="programa_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.programa) || '');
+                    setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.preus) || '');
+                    setRichContent(form.querySelector('[name="inclou_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.inclou) || '');
+                } else {
+                    const statusEsInput = form.querySelector('[name="status_es"]');
+                    if (statusEsInput) statusEsInput.value = 'draft';
+                    const titleEsInput = form.querySelector('[name="title_es"]');
+                    if (titleEsInput) titleEsInput.value = '';
+                    const slugInputEs = form.querySelector('[name="slug_es"]');
+                    if (slugInputEs) slugInputEs.value = '';
+                    setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), '');
+                    setSelectValues(form.querySelector('select[name="cicles_es[]"]'), []);
+                    setSelectValues(form.querySelector('select[name="categoria_es[]"]'), []);
+                    setRichContent(form.querySelector('[name="continguts_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="programa_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="inclou_es"]')?.closest('[data-rich-editor]'), '');
+                }
+
                 openModal(modal);
             });
         });
@@ -333,6 +393,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="product_id"]').value = product.id || '';
                 form.querySelector('[name="status"]').value = product.status || 'draft';
                 form.querySelector('[name="title"]').value = product.name || '';
+                const translationIdInput = form.querySelector('[name="product_id_es"]');
+                if (translationIdInput) {
+                    translationIdInput.value = product.translation?.id || '';
+                }
                 const slugInput = form.querySelector('[name="slug"]');
                 if (slugInput) slugInput.value = slugFromProduct(product);
 
@@ -367,6 +431,67 @@ document.addEventListener("DOMContentLoaded", () => {
                 form.querySelector('[name="existing_image_id"]').value = firstImage.id || '';
                 form.querySelector('[name="existing_image_src"]').value = firstImage.src || '';
                 form.querySelector('[name="featured_url"]').value = firstImage.src || '';
+
+                if (product.translation) {
+                    const translation = product.translation;
+                    const statusEsInput = form.querySelector('[name="status_es"]');
+                    if (statusEsInput) statusEsInput.value = translation.status || 'draft';
+                    const titleEsInput = form.querySelector('[name="title_es"]');
+                    if (titleEsInput) titleEsInput.value = translation.name || '';
+                    const slugInputEs = form.querySelector('[name="slug_es"]');
+                    if (slugInputEs) slugInputEs.value = slugFromProduct(translation);
+
+                    setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), translation.description || '');
+
+                    const ciclesEs = metaValue(translation, window.CENTRE_META_KEYS.cicles) || [];
+                    const categoriaEs = metaValue(translation, window.CENTRE_META_KEYS.categoria) || [];
+
+                    setSelectValues(form.querySelector('select[name="cicles_es[]"]'), Array.isArray(ciclesEs) ? ciclesEs : []);
+                    setSelectValues(form.querySelector('select[name="categoria_es[]"]'), Array.isArray(categoriaEs) ? categoriaEs : []);
+                    setRichContent(form.querySelector('[name="competencies_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.competencies) || '');
+                    setRichContent(form.querySelector('[name="metodologia_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.metodologia) || '');
+
+                    for (let i = 1; i <= 5; i++) {
+                        const titleField = form.querySelector(`[name="titol_programa_${i}_es"]`);
+                        const descWrapper = form.querySelector(`[name="descripcio_programa_${i}_es"]`)?.closest('[data-rich-editor]');
+                        if (titleField) {
+                            titleField.value = metaValue(translation, window.CENTRE_META_KEYS[`titol_programa_${i}`]) || '';
+                        }
+                        if (descWrapper) {
+                            setRichContent(descWrapper, metaValue(translation, window.CENTRE_META_KEYS[`descripcio_programa_${i}`]) || '');
+                        }
+                    }
+
+                    setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.preus) || '');
+                    setRichContent(form.querySelector('[name="inclou_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.inclou) || '');
+                    setRichContent(form.querySelector('[name="altres_activitats_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.altres_activitats) || '');
+                    setRichContent(form.querySelector('[name="cases_on_es_pot_fer_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.cases_on_es_pot_fer) || '');
+                    setRichContent(form.querySelector('[name="altres_propostes_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.altres_propostes) || '');
+                } else {
+                    const statusEsInput = form.querySelector('[name="status_es"]');
+                    if (statusEsInput) statusEsInput.value = 'draft';
+                    const titleEsInput = form.querySelector('[name="title_es"]');
+                    if (titleEsInput) titleEsInput.value = '';
+                    const slugInputEs = form.querySelector('[name="slug_es"]');
+                    if (slugInputEs) slugInputEs.value = '';
+
+                    setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), '');
+                    setSelectValues(form.querySelector('select[name="cicles_es[]"]'), []);
+                    setSelectValues(form.querySelector('select[name="categoria_es[]"]'), []);
+                    setRichContent(form.querySelector('[name="competencies_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="metodologia_es"]')?.closest('[data-rich-editor]'), '');
+                    for (let i = 1; i <= 5; i++) {
+                        const titleField = form.querySelector(`[name="titol_programa_${i}_es"]`);
+                        const descWrapper = form.querySelector(`[name="descripcio_programa_${i}_es"]`)?.closest('[data-rich-editor]');
+                        if (titleField) titleField.value = '';
+                        if (descWrapper) setRichContent(descWrapper, '');
+                    }
+                    setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="inclou_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="altres_activitats_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="cases_on_es_pot_fer_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="altres_propostes_es"]')?.closest('[data-rich-editor]'), '');
+                }
 
                 openModal(modal);
             });
@@ -428,12 +553,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const normativaHint = modal.querySelector('[data-current-normativa]');
         const galleryGrid = modal.querySelector('[data-gallery-grid]');
         const removedGalleryInput = modal.querySelector('[name="removed_gallery_images"]');
+        const galleryOrderInput = modal.querySelector('[name="gallery_order"]');
         const preuLinkWrapper = modal.querySelector('[data-preu-link]');
         const preuLinkAnchor = preuLinkWrapper?.querySelector('[data-preu-link-url]');
         const preuLinkEmpty = preuLinkWrapper?.querySelector('[data-preu-link-empty]');
         const preuLinkGenerate = preuLinkWrapper?.querySelector('[data-preu-link-generate]');
         const preuGenerateForm = modal.querySelector('[data-preu-generate-form]');
         let removedGallery = [];
+        let draggingGalleryItem = null;
 
         const setSelectValue = (select, value) => {
             if (!select) return;
@@ -452,6 +579,15 @@ document.addEventListener("DOMContentLoaded", () => {
             normativaHint.textContent = value ? `Fitxer actual: ${value}` : 'No hi ha cap fitxer pujat.';
         };
 
+        const updateGalleryOrder = () => {
+            if (!galleryGrid || !galleryOrderInput) return;
+            const order = Array.from(galleryGrid.querySelectorAll('.gallery-item')).map(item => ({
+                id: item.dataset.imageId ? Number(item.dataset.imageId) : null,
+                src: item.dataset.imageSrc || ''
+            }));
+            galleryOrderInput.value = JSON.stringify(order);
+        };
+
         const renderGallery = (images) => {
             if (!galleryGrid || !removedGalleryInput) return;
             galleryGrid.innerHTML = '';
@@ -460,12 +596,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 empty.className = 'gallery-empty';
                 empty.textContent = 'No hi ha imatges a la galeria.';
                 galleryGrid.appendChild(empty);
+                if (galleryOrderInput) {
+                    galleryOrderInput.value = JSON.stringify([]);
+                }
                 return;
             }
 
             images.forEach(image => {
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
+                item.draggable = true;
+                item.dataset.imageId = image.id || '';
+                item.dataset.imageSrc = image.src || '';
 
                 const img = document.createElement('img');
                 img.src = image.src || '';
@@ -486,11 +628,34 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (!galleryGrid.querySelector('.gallery-item')) {
                         renderGallery([]);
                     }
+                    updateGalleryOrder();
                 });
                 item.appendChild(remove);
 
+                const handle = document.createElement('span');
+                handle.className = 'gallery-handle';
+                handle.innerHTML = '<i class="fa fa-grip-lines"></i> Arrossega';
+                item.appendChild(handle);
+
+                item.addEventListener('dragstart', (event) => {
+                    if (!event.target.closest('.gallery-handle')) {
+                        event.preventDefault();
+                        return;
+                    }
+                    draggingGalleryItem = item;
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    draggingGalleryItem = null;
+                    updateGalleryOrder();
+                });
+
                 galleryGrid.appendChild(item);
             });
+
+            updateGalleryOrder();
         };
 
         const setPreuLink = (url) => {
@@ -515,11 +680,40 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        if (galleryGrid) {
+            const getGalleryAfterElement = (container, y) => {
+                const items = [...container.querySelectorAll('.gallery-item:not(.dragging)')];
+                return items.reduce((closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset, element: child };
+                    }
+                    return closest;
+                }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+            };
+
+            galleryGrid.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                if (!draggingGalleryItem) return;
+                const afterElement = getGalleryAfterElement(galleryGrid, event.clientY);
+                if (afterElement == null) {
+                    galleryGrid.appendChild(draggingGalleryItem);
+                } else {
+                    galleryGrid.insertBefore(draggingGalleryItem, afterElement);
+                }
+            });
+        }
+
         document.querySelectorAll('[data-edit-case]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const product = JSON.parse(btn.dataset.editCase || '{}');
 
                 form.querySelector('[name="product_id"]').value = product.id || '';
+                const translationIdInput = form.querySelector('[name="product_id_es"]');
+                if (translationIdInput) {
+                    translationIdInput.value = product.translation?.id || '';
+                }
                 if (preuGenerateForm) {
                     const generateId = preuGenerateForm.querySelector('[name="product_id"]');
                     if (generateId) {
@@ -570,6 +764,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 const galleryImages = (product.images || []).slice(1);
                 renderGallery(galleryImages);
 
+                if (product.translation) {
+                    const translation = product.translation;
+                    const slugInputEs = form.querySelector('[name="slug_es"]');
+                    form.querySelector('[name="title_es"]').value = translation.name || '';
+                    if (slugInputEs) slugInputEs.value = slugFromProduct(translation);
+                    setRichContent(form.querySelector('[name="description_es"]').closest('[data-rich-editor]'), translation.description || '');
+                    setRichContent(form.querySelector('[name="short_description_es"]').closest('[data-rich-editor]'), translation.short_description || '');
+                    setRichContent(form.querySelector('[name="preus_es"]').closest('[data-rich-editor]'), metaFromProduct(translation, 'preus') || '');
+
+                    form.querySelector('[name="places_es"]').value = metaFromProduct(translation, 'places') || '';
+                    form.querySelector('[name="regims_admessos_es"]').value = metaFromProduct(translation, 'regims_admessos') || '';
+                    form.querySelector('[name="exclusivitat_es"]').value = metaFromProduct(translation, 'exclusivitat') || '';
+                    form.querySelector('[name="habitacions_es"]').value = metaFromProduct(translation, 'habitacions') || '';
+                    form.querySelector('[name="provincia_es"]').value = metaFromProduct(translation, 'provincia') || '';
+                    form.querySelector('[name="comarca_es"]').value = metaFromProduct(translation, 'comarca') || '';
+                    form.querySelector('[name="calefaccio_es"]').value = metaFromProduct(translation, 'calefaccio') || '';
+                    form.querySelector('[name="sales_activitats_es"]').value = metaFromProduct(translation, 'sales_activitats') || '';
+                    form.querySelector('[name="exteriors_es"]').value = metaFromProduct(translation, 'exteriors') || '';
+                    form.querySelector('[name="places_adaptades_es"]').value = metaFromProduct(translation, 'places_adaptades') || '';
+                    form.querySelector('[name="google_maps_es"]').value = metaFromProduct(translation, 'google_maps') || '';
+
+                    setSelectValue(form.querySelector('[name="piscina_es"]'), normalizeYesNo(metaFromProduct(translation, 'piscina')));
+                    setSelectValue(form.querySelector('[name="acces_en_transport_public_es"]'), normalizeYesNo(metaFromProduct(translation, 'acces_en_transport_public')));
+                    setSelectValue(form.querySelector('[name="granja_escola_es"]'), normalizeYesNo(metaFromProduct(translation, 'granja_escola')));
+                    setSelectValue(form.querySelector('[name="escola_de_mar_es"]'), normalizeYesNo(metaFromProduct(translation, 'escola_de_mar')));
+                    setSelectValue(form.querySelector('[name="aventura_es"]'), normalizeYesNo(metaFromProduct(translation, 'aventura')));
+                    setSelectValue(form.querySelector('[name="wifi_es"]'), normalizeYesNo(metaFromProduct(translation, 'wifi')));
+                } else {
+                    const esFields = [
+                        'title_es', 'slug_es', 'places_es', 'regims_admessos_es', 'exclusivitat_es', 'habitacions_es',
+                        'provincia_es', 'comarca_es', 'calefaccio_es', 'sales_activitats_es', 'exteriors_es',
+                        'places_adaptades_es', 'google_maps_es'
+                    ];
+                    esFields.forEach(name => {
+                        const field = form.querySelector(`[name="${name}"]`);
+                        if (field) field.value = '';
+                    });
+                    setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="short_description_es"]')?.closest('[data-rich-editor]'), '');
+                    setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), '');
+                    setSelectValue(form.querySelector('[name="piscina_es"]'), '');
+                    setSelectValue(form.querySelector('[name="acces_en_transport_public_es"]'), '');
+                    setSelectValue(form.querySelector('[name="granja_escola_es"]'), '');
+                    setSelectValue(form.querySelector('[name="escola_de_mar_es"]'), '');
+                    setSelectValue(form.querySelector('[name="aventura_es"]'), '');
+                    setSelectValue(form.querySelector('[name="wifi_es"]'), '');
+                }
+
                 openModal(modal);
             });
         });
@@ -581,10 +823,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const initCaseOrdering = () => {
+        const table = document.querySelector('[data-orderable-table]');
+        const orderForm = document.querySelector('[data-order-form]');
+        const orderInput = orderForm?.querySelector('[name="order"]');
+        const saveButton = document.querySelector('[data-save-case-order]');
+        if (!table || !orderForm || !orderInput || !saveButton) return;
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        let draggingRow = null;
+
+        const getDragAfterElement = (container, y) => {
+            const draggableElements = [...container.querySelectorAll('tr:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, element: child };
+                }
+                return closest;
+            }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+        };
+
+        tbody.querySelectorAll('tr').forEach(row => {
+            row.draggable = true;
+            row.addEventListener('dragstart', (event) => {
+                if (!event.target.closest('.drag-handle')) {
+                    event.preventDefault();
+                    return;
+                }
+                draggingRow = row;
+                row.classList.add('dragging');
+            });
+            row.addEventListener('dragend', () => {
+                row.classList.remove('dragging');
+                draggingRow = null;
+            });
+        });
+
+        tbody.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            const afterElement = getDragAfterElement(tbody, event.clientY);
+            if (!draggingRow) return;
+            if (afterElement == null) {
+                tbody.appendChild(draggingRow);
+            } else {
+                tbody.insertBefore(draggingRow, afterElement);
+            }
+        });
+
+        saveButton.addEventListener('click', () => {
+            const order = Array.from(tbody.querySelectorAll('tr'))
+                .map(row => row.dataset.orderId)
+                .filter(Boolean);
+            orderInput.value = JSON.stringify(order);
+            orderForm.submit();
+        });
+    };
+
     initRangeFilters();
     initTableSearch();
+    initLanguageToggles();
     initActivitatEditor();
     initCentreEditor();
     openCentreModalFromUrl();
     initCaseEditor();
+    initCaseOrdering();
 });
