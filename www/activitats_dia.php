@@ -207,8 +207,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
             ['key' => $ACF_FIELD_KEYS['activitats']['programa'], 'value' => $programa],
             ['key' => $ACF_FIELD_KEYS['activitats']['preus'], 'value' => $preus],
             ['key' => $ACF_FIELD_KEYS['activitats']['inclou'], 'value' => $inclou],
+            ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'],
         ],
     ];
+    $payload['lang'] = 'ca';
     if ($slug !== '') {
         $payload['slug'] = $slug;
     }
@@ -353,8 +355,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
             ['key' => $ACF_FIELD_KEYS['activitats']['programa'], 'value' => $programa],
             ['key' => $ACF_FIELD_KEYS['activitats']['preus'], 'value' => $preus],
             ['key' => $ACF_FIELD_KEYS['activitats']['inclou'], 'value' => $inclou],
+            ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'],
         ],
     ];
+    $payload['lang'] = 'ca';
 
     if ($title === '' || $description === '') {
         flash('error', 'Cal omplir el títol i la descripció.');
