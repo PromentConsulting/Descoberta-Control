@@ -68,7 +68,12 @@ function product_lang(array $product): string {
 }
 
 function is_catalan_product(array $product): bool {
-    return product_lang($product) === 'ca';
+    $lang = product_lang($product);
+    if ($lang === '') {
+        return true;
+    }
+
+    return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
 }
 
 function find_translation_product(array $products, int $parentId): ?array {
