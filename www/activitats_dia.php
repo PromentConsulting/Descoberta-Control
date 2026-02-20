@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
+$enableSpanishPublishing = false;
 
 $products = [];
 $allProducts = [];
@@ -268,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         $inclouEs = trim($_POST['inclou_es'] ?? (string)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['activitats']['inclou']) ?? ''));
 
         $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
-        if ($hasTranslationContent) {
+        if ($enableSpanishPublishing && $hasTranslationContent) {
             if ($titleEs === '' || $descriptionEs === '') {
                 flash('error', 'Cal omplir el títol i la descripció en castellà.');
             } else {
@@ -409,7 +410,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         $inclouEs = trim($_POST['inclou_es'] ?? '');
 
         $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
-        if ($hasTranslationContent) {
+        if ($enableSpanishPublishing && $hasTranslationContent) {
             if ($titleEs === '' || $descriptionEs === '') {
                 flash('error', 'Cal omplir el títol i la descripció en castellà.');
             } else {

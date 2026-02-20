@@ -4,6 +4,7 @@ require_login();
 $messages = flash();
 $modalState = $_GET['modal'] ?? '';
 $modalMessage = null;
+$enableSpanishPublishing = false;
 if ($modalState === 'edit' && ($_GET['saved'] ?? '') === '1') {
     $modalMessage = 'Canvis desats correctament';
 }
@@ -332,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         ];
 
         $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
-        if ($hasTranslationContent) {
+        if ($enableSpanishPublishing && $hasTranslationContent) {
             if ($titleEs === '' || $descriptionEs === '') {
                 flash('error', 'Cal omplir el títol i la descripció en castellà.');
             } else {
@@ -471,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         $categoriaEs = array_values(array_filter(array_map('trim', $categoriaEs)));
 
         $hasTranslationContent = $titleEs !== '' || $descriptionEs !== '';
-        if ($hasTranslationContent) {
+        if ($enableSpanishPublishing && $hasTranslationContent) {
             if ($titleEs === '' || $descriptionEs === '') {
                 flash('error', 'Cal omplir el títol i la descripció en castellà.');
             } else {

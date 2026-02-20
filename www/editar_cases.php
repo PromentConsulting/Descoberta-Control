@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
+$enableSpanishPublishing = false;
 
 $productsResponse = woo_all_products('descoberta');
 
@@ -661,7 +662,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hasTranslationContent = $translationData['title'] !== '' || $translationData['description'] !== '';
             $translationCreatedProduct = null;
 
-            if ($hasTranslationContent) {
+            if ($enableSpanishPublishing && $hasTranslationContent) {
                 if ($translationData['title'] === '' || $translationData['description'] === '') {
                     flash('error', 'Cal omplir el títol i la descripció en castellà.');
                 } else {
@@ -788,7 +789,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hasTranslationContent = $translationData['title'] !== '' || $translationData['description'] !== '';
             $translationCreatedProduct = null;
 
-            if ($hasTranslationContent) {
+            if ($enableSpanishPublishing && $hasTranslationContent) {
                 if ($translationData['title'] === '' || $translationData['description'] === '') {
                     flash('error', 'Cal omplir el títol i la descripció en castellà.');
                 } else {

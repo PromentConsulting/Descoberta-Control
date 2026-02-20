@@ -956,6 +956,9 @@ body {
 .language-toggle button.active { background: #4f46e5; color: #fff; }
 .language-panel { display: none; }
 .language-panel.active { display: block; }
+
+.language-toggle button[data-lang="es"],
+.language-panel[data-lang="es"] { display: none !important; }
 .drag-handle { display: inline-flex; align-items: center; gap: 6px; cursor: grab; color: #6b7280; }
 .drag-handle i { color: #94a3b8; }
 .order-input { width: 70px; text-align: center; padding: 6px 8px; border-radius: 10px; border: 1px solid #e5e7eb; background: #f9fafb; }
