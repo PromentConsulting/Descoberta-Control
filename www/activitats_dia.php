@@ -79,7 +79,11 @@ function meta_value(array $product, string $key) {
 }
 
 function translation_parent_id(array $product): int {
-    return (int)(meta_value($product, TRANSLATION_PARENT_META_KEY) ?? 0);
+    $parent = meta_value($product, TRANSLATION_PARENT_META_KEY);
+    if ($parent === null || $parent === '') {
+        $parent = $product[TRANSLATION_PARENT_META_KEY] ?? $product['translation_parent_id'] ?? $product['translation_of'] ?? 0;
+    }
+    return (int)$parent;
 }
 
 function is_translation_product(array $product): bool {
@@ -89,17 +93,23 @@ function is_translation_product(array $product): bool {
 function product_lang(array $product): string {
     $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
     if ($lang === null || $lang === '') {
-        $lang = $product['lang'] ?? '';
+        $lang = meta_value($product, 'lang')
+            ?? $product[TRANSLATION_LANG_META_KEY]
+            ?? $product['lang']
+            ?? $product['locale']
+            ?? '';
     }
-    return strtolower((string)$lang);
+
+    $normalized = strtolower(trim((string)$lang));
+    if ($normalized === '') {
+        return '';
+    }
+
+    return preg_split('/[-_]/', $normalized)[0] ?: $normalized;
 }
 
 function is_catalan_product(array $product): bool {
     $lang = product_lang($product);
-    if ($lang === '') {
-        return true;
-    }
-
     return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
 }
 
