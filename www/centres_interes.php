@@ -4,7 +4,7 @@ require_login();
 $messages = flash();
 $modalState = $_GET['modal'] ?? '';
 $modalMessage = null;
-$enableSpanishPublishing = false;
+$enableSpanishPublishing = true;
 if ($modalState === 'edit' && ($_GET['saved'] ?? '') === '1') {
     $modalMessage = 'Canvis desats correctament';
 }
@@ -94,6 +94,23 @@ function is_translation_product(array $product): bool {
     return translation_parent_id($product) > 0;
 }
 
+function product_lang(array $product): string {
+    $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
+    if ($lang === null || $lang === '') {
+        $lang = $product['lang'] ?? '';
+    }
+    return strtolower((string)$lang);
+}
+
+function is_catalan_product(array $product): bool {
+    $lang = product_lang($product);
+    if ($lang === '') {
+        return true;
+    }
+
+    return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
+}
+
 function find_translation_product(array $products, int $parentId): ?array {
     foreach ($products as $product) {
         if (translation_parent_id($product) === $parentId) {
@@ -140,6 +157,7 @@ function normalize_categories(array $product, int $mainCategoryId): array {
 
 if ($products) {
     $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
+    $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') === 'toggle_status') {
