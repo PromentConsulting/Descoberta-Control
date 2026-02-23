@@ -152,6 +152,52 @@ if ($products) {
     $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
 }
 
+usort($products, function ($a, $b) {
+    $orderA = (int)($a['menu_order'] ?? 0);
+    $orderB = (int)($b['menu_order'] ?? 0);
+    if ($orderA === $orderB) {
+        return strcasecmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
+    }
+    return $orderA <=> $orderB;
+});
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') === 'update_product_order') {
+    $orderNumbers = $_POST['order_numbers'] ?? [];
+    if (!is_array($orderNumbers)) {
+        $orderNumbers = [];
+    }
+    $errors = [];
+    foreach ($orderNumbers as $productId => $orderNumber) {
+        $productId = (int)$productId;
+        if ($productId <= 0) {
+            continue;
+        }
+        $orderValue = max(0, (int)$orderNumber - 1);
+        $updates = [
+            ['id' => $productId, 'label' => 'base'],
+        ];
+        $translation = find_translation_product($allProducts, $productId);
+        if ($translation) {
+            $updates[] = ['id' => (int)$translation['id'], 'label' => 'traducció'];
+        }
+        foreach ($updates as $target) {
+            $update = woo_update_product('descoberta', (int)$target['id'], [
+                'menu_order' => $orderValue,
+            ]);
+            if (!$update['success']) {
+                $errors[] = $target['id'] . ' (' . $target['label'] . ')';
+            }
+        }
+    }
+    if ($errors) {
+        flash('error', 'No s\'ha pogut actualitzar l\'ordre per a: ' . implode(', ', $errors));
+    } else {
+        flash('success', 'Ordre de les activitats desat correctament.');
+    }
+
+    redirect('/activitats_dia.php');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') === 'toggle_status') {
     $productId = (int)($_POST['product_id'] ?? 0);
     $targetStatus = $_POST['target_status'] === 'publish' ? 'publish' : 'draft';
@@ -493,10 +539,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         </div>
     </div>
 
+    <div class="actions-row">
+        <button type="submit" class="btn secondary" form="activitats-order-form">Desar ordre</button>
+        <p class="hint">Introdueix un número per definir l'ordre de les activitats.</p>
+    </div>
+    <form method="POST" class="inline-form" id="activitats-order-form" data-order-form>
+        <input type="hidden" name="product_action" value="update_product_order">
+    </form>
+
     <div class="table-wrapper scrollable">
-        <table class="styled-table" id="activitats-table">
+        <table class="styled-table" id="activitats-table" data-orderable-table>
             <thead>
                 <tr>
+                    <th>Ordre</th>
                     <th class="sortable" data-sort-key="title">Títol <i class="fa fa-sort"></i></th>
                     <th class="sortable" data-sort-key="status">Estat <i class="fa fa-sort"></i></th>
                     <th>Imatge</th>
@@ -524,6 +579,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                         ] : null;
                     ?>
                     <tr data-search-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>">
+                        <td>
+                            <input
+                                type="number"
+                                min="1"
+                                step="1"
+                                name="order_numbers[<?php echo (int)($product['id'] ?? 0); ?>]"
+                                value="<?php echo (int)($product['menu_order'] ?? 0) + 1; ?>"
+                                class="order-input"
+                                form="activitats-order-form"
+                            >
+                        </td>
                         <td data-col="title" data-sort-value="<?php echo htmlspecialchars(strtolower($product['name'] ?? '')); ?>"><?php echo htmlspecialchars($product['name'] ?? ''); ?></td>
                         <td data-col="status" data-sort-value="<?php echo htmlspecialchars($statusText); ?>"><?php echo htmlspecialchars($statusText); ?></td>
                         <td><?php if (!empty($product['images'][0]['src'])): ?><img class="thumb" src="<?php echo htmlspecialchars($product['images'][0]['src']); ?>" alt="thumb"><?php endif; ?></td>
