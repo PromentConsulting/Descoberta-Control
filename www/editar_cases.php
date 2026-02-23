@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 require_login();
 $messages = flash();
-$enableSpanishPublishing = false;
+$enableSpanishPublishing = true;
 
 $productsResponse = woo_all_products('descoberta');
 
@@ -14,7 +14,9 @@ $cases = array_values(array_filter($cases, fn($case) => is_catalan_product($case
 $activitats = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'activitat-de-dia') : [];
 $centres = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'centre-interes') : [];
 $activitats = array_values(array_filter($activitats, fn($activitat) => !is_translation_product($activitat)));
+$activitats = array_values(array_filter($activitats, fn($activitat) => is_catalan_product($activitat)));
 $centres = array_values(array_filter($centres, fn($centre) => !is_translation_product($centre)));
+$centres = array_values(array_filter($centres, fn($centre) => is_catalan_product($centre)));
 
 define('PREU_LINK_META_KEY', 'linked_case_id');
 
