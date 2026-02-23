@@ -94,10 +94,25 @@ function product_lang(array $product): string {
     $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
     if ($lang === null || $lang === '') {
         $lang = meta_value($product, 'lang')
+            ?? meta_value($product, 'language')
+            ?? meta_value($product, '_pll_language')
+            ?? meta_value($product, 'pll_language')
             ?? $product[TRANSLATION_LANG_META_KEY]
             ?? $product['lang']
+            ?? $product['language']
             ?? $product['locale']
             ?? '';
+    }
+
+    if ($lang === '' || $lang === null) {
+        $translations = product_translations($product);
+        $productId = (int)($product['id'] ?? 0);
+        foreach ($translations as $translationLang => $translationId) {
+            if ((int)$translationId === $productId) {
+                $lang = (string)$translationLang;
+                break;
+            }
+        }
     }
 
     $normalized = strtolower(trim((string)$lang));
@@ -108,12 +123,47 @@ function product_lang(array $product): string {
     return preg_split('/[-_]/', $normalized)[0] ?: $normalized;
 }
 
+function product_translations(array $product): array {
+    $translations = $product['translations'] ?? meta_value($product, 'translations') ?? [];
+
+    if (is_string($translations)) {
+        $decoded = json_decode($translations, true);
+        if (is_array($decoded)) {
+            $translations = $decoded;
+        }
+    }
+
+    if (!is_array($translations)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($translations as $lang => $id) {
+        if ((int)$id > 0) {
+            $normalized[strtolower((string)$lang)] = (int)$id;
+        }
+    }
+
+    return $normalized;
+}
+
 function is_catalan_product(array $product): bool {
     $lang = product_lang($product);
     return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
 }
 
 function find_translation_product(array $products, int $parentId): ?array {
+    $parent = product_by_id($products, $parentId);
+    if ($parent) {
+        $translations = product_translations($parent);
+        foreach (['es', 'spa'] as $spanishLang) {
+            $translationId = (int)($translations[$spanishLang] ?? 0);
+            if ($translationId > 0) {
+                return product_by_id($products, $translationId);
+            }
+        }
+    }
+
     foreach ($products as $product) {
         if (translation_parent_id($product) === $parentId) {
             return $product;
