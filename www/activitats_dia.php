@@ -96,10 +96,6 @@ function product_lang(array $product): string {
 
 function is_catalan_product(array $product): bool {
     $lang = product_lang($product);
-    if ($lang === '') {
-        return true;
-    }
-
     return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
 }
 
