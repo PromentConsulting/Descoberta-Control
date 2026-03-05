@@ -10,13 +10,10 @@ $allProducts = $productsResponse['success'] ? ($productsResponse['data'] ?? []) 
 $cases = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'cases-de-colonies') : [];
 $cases = array_values(array_filter($cases, fn($case) => !has_category_slug($case, 'preu')));
 $cases = array_values(array_filter($cases, fn($case) => !is_translation_product($case)));
-$cases = array_values(array_filter($cases, fn($case) => is_catalan_product($case)));
 $activitats = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'activitat-de-dia') : [];
 $centres = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'centre-interes') : [];
 $activitats = array_values(array_filter($activitats, fn($activitat) => !is_translation_product($activitat)));
-$activitats = array_values(array_filter($activitats, fn($activitat) => is_catalan_product($activitat)));
 $centres = array_values(array_filter($centres, fn($centre) => !is_translation_product($centre)));
-$centres = array_values(array_filter($centres, fn($centre) => is_catalan_product($centre)));
 
 define('PREU_LINK_META_KEY', 'linked_case_id');
 
@@ -64,29 +61,6 @@ function translation_parent_id(array $product): int {
 
 function is_translation_product(array $product): bool {
     return translation_parent_id($product) > 0;
-}
-
-function product_lang(array $product): string {
-    $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
-    if ($lang === null || $lang === '') {
-        $lang = meta_value($product, 'lang')
-            ?? $product[TRANSLATION_LANG_META_KEY]
-            ?? $product['lang']
-            ?? $product['locale']
-            ?? '';
-    }
-
-    $normalized = strtolower(trim((string)$lang));
-    if ($normalized === '') {
-        return '';
-    }
-
-    return preg_split('/[-_]/', $normalized)[0] ?: $normalized;
-}
-
-function is_catalan_product(array $product): bool {
-    $lang = product_lang($product);
-    return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
 }
 
 function find_translation_product(array $products, int $parentId): ?array {
