@@ -153,8 +153,8 @@ $CICLES_OPTIONS = [
 ];
 
 $CATEGORIES_OPTIONS = [
-    'Propostes a l\'aula', 'Cuina', 'Apicultura', 'Treball de camp', 'Natura', 'Granja i vida al camp',
-    'Contres i llegendes', 'Tradició', 'Aventura', 'Expressió corporal i artística', 'Mar', 'Història',
+    'Propostes aula', 'Cuina', 'Apicultura', 'Treball de camp', 'Natura', 'Granja i vida al camp',
+    'Contes i llegendes', 'Tradició', 'Aventura', 'Expressió corporal i artística', 'Mar', 'Història',
     'Dinàmiques', 'Sostenibilitat', 'Cures personals', 'Participació i vida comunitària'
 
 ];
