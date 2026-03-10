@@ -241,6 +241,26 @@ function find_product_by_meta_value(array $products, string $key, string $value)
     return null;
 }
 
+function sync_meta_value_with_product(array &$metaData, array $targetProduct, string $key, $value): void {
+    $existingId = null;
+    foreach ($targetProduct['meta_data'] ?? [] as $meta) {
+        if (($meta['key'] ?? '') === $key) {
+            $existingId = (int)($meta['id'] ?? 0) ?: null;
+            break;
+        }
+    }
+
+    $metaData = array_values(array_filter($metaData, function ($meta) use ($key) {
+        return ($meta['key'] ?? '') !== $key;
+    }));
+
+    $entry = ['key' => $key, 'value' => $value];
+    if ($existingId) {
+        $entry['id'] = $existingId;
+    }
+    $metaData[] = $entry;
+}
+
 function upload_gallery_files(string $fieldName): array {
     $files = $_FILES[$fieldName] ?? null;
     if (!$files || empty($files['tmp_name']) || !is_array($files['tmp_name'])) {
@@ -649,6 +669,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $duplicatePayload['meta_data'][] = ['key' => PREU_LINK_META_KEY, 'value' => (string)$productId];
             $duplicatePayload['meta_data'][] = ['key' => TRANSLATION_LANG_META_KEY, 'value' => 'ca'];
+            sync_meta_value_with_product(
+                $duplicatePayload['meta_data'],
+                $preuDuplicate,
+                $caseKeys['preus'] ?? 'preus',
+                trim($_POST['preus'] ?? (string)meta_value($currentCase, $caseKeys['preus'] ?? ''))
+            );
             $duplicatePayload['lang'] = 'ca';
             $dupUpdate = woo_update_product('descoberta', (int)$preuDuplicate['id'], $duplicatePayload);
             if (!$dupUpdate['success']) {
@@ -722,6 +748,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $preuTranslationPayload['meta_data'][] = ['key' => '_thumbnail_id', 'value' => $imagesResult['thumbnail_id']];
                 }
                 if ($preuTranslation) {
+                    sync_meta_value_with_product(
+                        $preuTranslationPayload['meta_data'],
+                        $preuTranslation,
+                        $caseKeys['preus'] ?? 'preus',
+                        trim($_POST['preus_es'] ?? (string)meta_value($translationReference, $caseKeys['preus'] ?? ''))
+                    );
                     $preuTranslationUpdate = woo_update_product('descoberta', (int)$preuTranslation['id'], $preuTranslationPayload);
                     if (!$preuTranslationUpdate['success']) {
                         flash('error', 'No s\'ha pogut actualitzar la traducció de preus en castellà: ' . ($preuTranslationUpdate['error'] ?? json_encode($preuTranslationUpdate['data'])));
