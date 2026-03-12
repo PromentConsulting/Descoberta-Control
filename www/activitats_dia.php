@@ -783,13 +783,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona un o més cicles</p>
                             </div>
                             <div>
-                                <label>Categoria</label>
-                                <select name="categoria[]" multiple required>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o més categories</p>
+                                </div>
                             </div>
                         </div>
 
@@ -890,13 +889,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona uno o más ciclos</p>
                             </div>
                             <div>
-                                <label>Categoría</label>
-                                <select name="categoria_es[]" multiple>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o más categorías</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1023,13 +1021,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona un o més cicles</p>
                             </div>
                             <div>
-                                <label>Categoria</label>
-                                <select name="categoria[]" multiple required>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o més categories</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1127,13 +1124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona uno o más ciclos</p>
                             </div>
                             <div>
-                                <label>Categoría</label>
-                                <select name="categoria_es[]" multiple>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o más categorías</p>
+                                </div>
                             </div>
                         </div>
 
