@@ -909,6 +909,33 @@ body {
 .form-card input, .form-card textarea, .form-card select { width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid #e5e7eb; background: #f9fafb; }
 .form-card textarea.rich { min-height: 220px; }
 .two-columns { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); }
+.category-type-row {
+    margin-bottom: 10px;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.checkbox-group-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+.checkbox-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
 .checkbox-list { display: flex; flex-direction: column; gap: 6px; }
 .checkbox-list.horizontal { flex-direction: row; flex-wrap: wrap; gap: 10px; }
 .hint { font-size: 0.85rem; color: #9ca3af; }
