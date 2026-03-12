@@ -745,7 +745,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
                     <div class="language-panel" data-language-panel data-lang="ca">
                     <div class="category-type-row">
-                        <label>Tipus de categoria</label>
+                        <label>Tipus de categoria (WooCommerce)</label>
                         <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
                             <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
                                 <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
@@ -851,7 +851,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
                     <div class="language-panel" data-language-panel data-lang="es">
                         <div class="category-type-row">
-                            <label>Tipus de categoria</label>
+                            <label>Tipus de categoria (WooCommerce)</label>
                             <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
                                 <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
                                     <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
@@ -986,7 +986,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
                     <div class="language-panel" data-language-panel data-lang="ca">
                     <div class="category-type-row">
-                        <label>Tipus de categoria</label>
+                        <label>Tipus de categoria (WooCommerce)</label>
                         <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
                             <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
                                 <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
@@ -1089,7 +1089,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
                     <div class="language-panel" data-language-panel data-lang="es">
                         <div class="category-type-row">
-                            <label>Tipus de categoria</label>
+                            <label>Tipus de categoria (WooCommerce)</label>
                             <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
                                 <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
                                     <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
