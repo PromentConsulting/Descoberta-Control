@@ -253,6 +253,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
+
+    const setCheckboxValues = (scope, name, values) => {
+        if (!scope) return;
+        const normalized = new Set((values || []).map(v => String(v)));
+        scope.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+            input.checked = normalized.has(input.value);
+        });
+    };
+
     const setRichContent = (wrapper, value) => {
         if (!wrapper) return;
         const textarea = wrapper.querySelector('textarea');
@@ -327,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ciclesVal = metaValue(product, window.ACTIVITAT_META_KEYS.cicles) || [];
                 const categoriaVal = metaValue(product, window.ACTIVITAT_META_KEYS.categoria) || [];
 
+                setCheckboxValues(form, 'category_types[]', Array.isArray(product.type_categories) && product.type_categories.length ? product.type_categories : ['activitat-de-dia']);
                 setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
                 setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
 
@@ -405,6 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const ciclesVal = metaValue(product, window.CENTRE_META_KEYS.cicles) || [];
                 const categoriaVal = metaValue(product, window.CENTRE_META_KEYS.categoria) || [];
 
+                setCheckboxValues(form, 'category_types[]', Array.isArray(product.type_categories) && product.type_categories.length ? product.type_categories : ['credits-de-sintesi']);
                 setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
                 setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
                 setRichContent(form.querySelector('[name="competencies"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.competencies) || '');
