@@ -253,21 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-
-    const setCheckboxGroupValues = (scope, inputName, values, defaultValue = '') => {
-        if (!scope) return;
-        const normalized = new Set((values || []).map(v => String(v)));
-        const checkboxes = scope.querySelectorAll(`input[type="checkbox"][name="${inputName}"]`);
-        if (!checkboxes.length) return;
-        checkboxes.forEach(box => {
-            box.checked = normalized.size ? normalized.has(box.value) : box.value === defaultValue;
-        });
-    };
-
-    const productCategorySlugs = (product) => {
-        return (product?.categories || []).map(cat => String(cat.slug || '')).filter(Boolean);
-    };
-
     const setRichContent = (wrapper, value) => {
         if (!wrapper) return;
         const textarea = wrapper.querySelector('textarea');
@@ -344,7 +329,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
                 setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
-                setCheckboxGroupValues(form, 'category_slugs[]', productCategorySlugs(product), 'activitat-de-dia');
 
                 setRichContent(form.querySelector('[name="continguts"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.continguts) || '');
                 setRichContent(form.querySelector('[name="programa"]').closest('[data-rich-editor]'), metaValue(product, window.ACTIVITAT_META_KEYS.programa) || '');
@@ -370,7 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const categoriaEs = metaValue(translation, window.ACTIVITAT_META_KEYS.categoria) || [];
                     setSelectValues(form.querySelector('select[name="cicles_es[]"]'), Array.isArray(ciclesEs) ? ciclesEs : []);
                     setSelectValues(form.querySelector('select[name="categoria_es[]"]'), Array.isArray(categoriaEs) ? categoriaEs : []);
-                    setCheckboxGroupValues(form, 'category_slugs_es[]', productCategorySlugs(translation), 'activitat-de-dia');
 
                     setRichContent(form.querySelector('[name="continguts_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.continguts) || '');
                     setRichContent(form.querySelector('[name="programa_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.ACTIVITAT_META_KEYS.programa) || '');
@@ -386,7 +369,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), '');
                     setSelectValues(form.querySelector('select[name="cicles_es[]"]'), []);
                     setSelectValues(form.querySelector('select[name="categoria_es[]"]'), []);
-                    setCheckboxGroupValues(form, 'category_slugs_es[]', [], 'activitat-de-dia');
                     setRichContent(form.querySelector('[name="continguts_es"]')?.closest('[data-rich-editor]'), '');
                     setRichContent(form.querySelector('[name="programa_es"]')?.closest('[data-rich-editor]'), '');
                     setRichContent(form.querySelector('[name="preus_es"]')?.closest('[data-rich-editor]'), '');
@@ -425,7 +407,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setSelectValues(form.querySelector('select[name="cicles[]"]'), Array.isArray(ciclesVal) ? ciclesVal : []);
                 setSelectValues(form.querySelector('select[name="categoria[]"]'), Array.isArray(categoriaVal) ? categoriaVal : []);
-                setCheckboxGroupValues(form, 'category_slugs[]', productCategorySlugs(product), 'credits-de-sintesi');
                 setRichContent(form.querySelector('[name="competencies"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.competencies) || '');
                 setRichContent(form.querySelector('[name="metodologia"]').closest('[data-rich-editor]'), metaValue(product, window.CENTRE_META_KEYS.metodologia) || '');
 
@@ -467,7 +448,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     setSelectValues(form.querySelector('select[name="cicles_es[]"]'), Array.isArray(ciclesEs) ? ciclesEs : []);
                     setSelectValues(form.querySelector('select[name="categoria_es[]"]'), Array.isArray(categoriaEs) ? categoriaEs : []);
-                    setCheckboxGroupValues(form, 'category_slugs_es[]', productCategorySlugs(translation), 'credits-de-sintesi');
                     setRichContent(form.querySelector('[name="competencies_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.competencies) || '');
                     setRichContent(form.querySelector('[name="metodologia_es"]')?.closest('[data-rich-editor]'), metaValue(translation, window.CENTRE_META_KEYS.metodologia) || '');
 
@@ -498,7 +478,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     setRichContent(form.querySelector('[name="description_es"]')?.closest('[data-rich-editor]'), '');
                     setSelectValues(form.querySelector('select[name="cicles_es[]"]'), []);
                     setSelectValues(form.querySelector('select[name="categoria_es[]"]'), []);
-                    setCheckboxGroupValues(form, 'category_slugs_es[]', [], 'credits-de-sintesi');
                     setRichContent(form.querySelector('[name="competencies_es"]')?.closest('[data-rich-editor]'), '');
                     setRichContent(form.querySelector('[name="metodologia_es"]')?.closest('[data-rich-editor]'), '');
                     for (let i = 1; i <= 5; i++) {
