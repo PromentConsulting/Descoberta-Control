@@ -5,6 +5,12 @@ $messages = flash();
 $modalState = $_GET['modal'] ?? '';
 $modalMessage = null;
 $enableSpanishPublishing = true;
+$centreCategoryOptions = [
+    'centre-interes' => "Centre d'interès",
+    'credits-de-sintesi' => 'Crèdit de síntesi',
+    'estades-de-final-de-curs' => 'Estada de final de curs',
+    'colonies-per-afa' => 'Colònia per afa',
+];
 if ($modalState === 'edit' && ($_GET['saved'] ?? '') === '1') {
     $modalMessage = 'Canvis desats correctament';
 }
@@ -18,7 +24,15 @@ $apiError = null;
 $response = woo_all_products('descoberta');
 if ($response['success']) {
     $allProducts = $response['data'] ?? [];
-    $products = filter_products_by_category($allProducts, 'centre-interes');
+    $allowedSlugs = array_keys($centreCategoryOptions);
+    $products = array_values(array_filter($allProducts, function ($product) use ($allowedSlugs) {
+        foreach ($product['categories'] ?? [] as $cat) {
+            if (in_array($cat['slug'] ?? '', $allowedSlugs, true)) {
+                return true;
+            }
+        }
+        return false;
+    }));
 } else {
     $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
@@ -146,7 +160,7 @@ function normalize_slug_input(string $slug): string {
     return $slug;
 }
 
-function normalize_categories(array $product, int $mainCategoryId): array {
+function normalize_categories_by_slugs(array $product, array $selectedSlugs, array $availableSlugs): array {
     $categories = array_values(array_filter(array_map(function ($cat) {
         if (!empty($cat['id'])) {
             return ['id' => (int)$cat['id']];
@@ -154,15 +168,51 @@ function normalize_categories(array $product, int $mainCategoryId): array {
         return null;
     }, $product['categories'] ?? [])));
 
-    $ids = array_map(function ($cat) {
-        return (int)($cat['id'] ?? 0);
-    }, $categories);
+    $categoryMap = [];
+    foreach ($availableSlugs as $slug) {
+        $catId = category_id('descoberta', $slug);
+        if ($catId) {
+            $categoryMap[$slug] = (int)$catId;
+        }
+    }
 
-    if ($mainCategoryId && !in_array($mainCategoryId, $ids, true)) {
-        $categories[] = ['id' => $mainCategoryId];
+    $allowedIds = array_values($categoryMap);
+    if ($allowedIds) {
+        $categories = array_values(array_filter($categories, function ($cat) use ($allowedIds) {
+            return !in_array((int)($cat['id'] ?? 0), $allowedIds, true);
+        }));
+    }
+
+    foreach ($selectedSlugs as $slug) {
+        $catId = $categoryMap[$slug] ?? null;
+        if (!$catId) {
+            continue;
+        }
+        $exists = false;
+        foreach ($categories as $cat) {
+            if ((int)($cat['id'] ?? 0) === $catId) {
+                $exists = true;
+                break;
+            }
+        }
+        if (!$exists) {
+            $categories[] = ['id' => $catId];
+        }
     }
 
     return $categories;
+}
+
+function selected_category_slugs(array $input, array $availableSlugs, string $defaultSlug): array {
+    if (!is_array($input)) {
+        $input = [$input];
+    }
+    $selected = array_values(array_filter(array_map('trim', $input)));
+    $selected = array_values(array_intersect($availableSlugs, $selected));
+    if (!$selected && in_array($defaultSlug, $availableSlugs, true)) {
+        $selected = [$defaultSlug];
+    }
+    return $selected;
 }
 
 if ($products) {
@@ -267,6 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
     }
     $cicles = array_values(array_filter(array_map('trim', $cicles)));
 
+    $selectedCategorySlugs = selected_category_slugs($_POST['category_slugs'] ?? [], array_keys($centreCategoryOptions), 'credits-de-sintesi');
     $categoria = $_POST['categoria'] ?? [];
     if (!is_array($categoria)) {
         $categoria = [$categoria];
@@ -307,10 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         $payload['slug'] = $slug;
     }
 
-    $catId = category_id('descoberta', 'centre-interes');
-    if ($catId) {
-        $payload['categories'] = normalize_categories($product, $catId);
-    }
+    $payload['categories'] = normalize_categories_by_slugs($product, $selectedCategorySlugs, array_keys($centreCategoryOptions));
 
     if (!empty($_FILES['featured_file']['tmp_name'])) {
         $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
@@ -369,6 +417,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         }
         $ciclesEs = array_values(array_filter(array_map('trim', $ciclesEs)));
 
+        $selectedCategorySlugsEs = selected_category_slugs($_POST['category_slugs_es'] ?? $selectedCategorySlugs, array_keys($centreCategoryOptions), 'credits-de-sintesi');
         $categoriaEs = $_POST['categoria_es'] ?? (array)(meta_value($translationProduct ?? [], $ACF_FIELD_KEYS['centres']['categoria']) ?? []);
         if (!is_array($categoriaEs)) {
             $categoriaEs = [$categoriaEs];
@@ -414,10 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
                 if ($slugEs !== '') {
                     $payloadEs['slug'] = $slugEs;
                 }
-                $catId = category_id('descoberta', 'centre-interes');
-                if ($catId) {
-                    $payloadEs['categories'] = normalize_categories($translationProduct ?? $product, $catId);
-                }
+                $payloadEs['categories'] = normalize_categories_by_slugs($translationProduct ?? $product, $selectedCategorySlugsEs, array_keys($centreCategoryOptions));
 
                 if ($translationProduct) {
                     $translationUpdate = woo_update_product('descoberta', (int)$translationProduct['id'], $payloadEs);
@@ -456,6 +502,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
     }
     $cicles = array_values(array_filter(array_map('trim', $cicles)));
 
+    $selectedCategorySlugs = selected_category_slugs($_POST['category_slugs'] ?? [], array_keys($centreCategoryOptions), 'credits-de-sintesi');
     $categoria = $_POST['categoria'] ?? [];
     if (!is_array($categoria)) {
         $categoria = [$categoria];
@@ -496,10 +543,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         redirect('/centres_interes.php');
     }
 
-    $catId = category_id('descoberta', 'centre-interes');
-    if ($catId) {
-        $payload['categories'][] = ['id' => $catId];
-    }
+    $payload['categories'] = normalize_categories_by_slugs([], $selectedCategorySlugs, array_keys($centreCategoryOptions));
 
     if (!empty($_FILES['featured_file']['tmp_name'])) {
         $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
@@ -539,6 +583,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         }
         $ciclesEs = array_values(array_filter(array_map('trim', $ciclesEs)));
 
+        $selectedCategorySlugsEs = selected_category_slugs($_POST['category_slugs_es'] ?? $selectedCategorySlugs, array_keys($centreCategoryOptions), 'credits-de-sintesi');
         $categoriaEs = $_POST['categoria_es'] ?? [];
         if (!is_array($categoriaEs)) {
             $categoriaEs = [$categoriaEs];
@@ -555,7 +600,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     'status' => $statusEs,
                     'description' => $descriptionEs,
                     'lang' => 'es',
-                    'categories' => $payload['categories'],
+                    'categories' => normalize_categories_by_slugs([], $selectedCategorySlugsEs, array_keys($centreCategoryOptions)),
                     'meta_data' => [
                         ['key' => $ACF_FIELD_KEYS['centres']['competencies'], 'value' => trim($_POST['competencies_es'] ?? '')],
                         ['key' => $ACF_FIELD_KEYS['centres']['metodologia'], 'value' => trim($_POST['metodologia_es'] ?? '')],
@@ -758,13 +803,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                             <p class="hint">Selecciona un o més cicles</p>
                         </div>
                         <div>
-                            <label>Categoria</label>
-                            <select name="categoria[]" multiple required>
-                                <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                    <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                            <label>Tipus de categoria</label>
+                            <div class="checkbox-group" data-category-checkbox-group>
+                                <?php foreach ($centreCategoryOptions as $slugOption => $labelOption): ?>
+                                    <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'credits-de-sintesi' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                 <?php endforeach; ?>
-                            </select>
-                            <p class="hint">Selecciona una o més categories</p>
+                            </div>
                         </div>
                     </div>
 
@@ -916,13 +960,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona uno o más ciclos</p>
                             </div>
                             <div>
-                                <label>Categoría</label>
-                                <select name="categoria_es[]" multiple>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($centreCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'credits-de-sintesi' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o más categorías</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1106,13 +1149,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona un o més cicles</p>
                             </div>
                             <div>
-                                <label>Categoria</label>
-                                <select name="categoria[]" multiple required>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($centreCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'credits-de-sintesi' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o més categories</p>
+                                </div>
                             </div>
                         </div>
 
@@ -1261,13 +1303,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                                 <p class="hint">Selecciona uno o más ciclos</p>
                             </div>
                             <div>
-                                <label>Categoría</label>
-                                <select name="categoria_es[]" multiple>
-                                    <?php foreach ($CATEGORIES_OPTIONS as $opt): ?>
-                                        <option value="<?php echo htmlspecialchars($opt); ?>"><?php echo htmlspecialchars($opt); ?></option>
+                                <label>Tipus de categoria</label>
+                                <div class="checkbox-group" data-category-checkbox-group>
+                                    <?php foreach ($centreCategoryOptions as $slugOption => $labelOption): ?>
+                                        <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'credits-de-sintesi' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
                                     <?php endforeach; ?>
-                                </select>
-                                <p class="hint">Selecciona una o más categorías</p>
+                                </div>
                             </div>
                         </div>
 
