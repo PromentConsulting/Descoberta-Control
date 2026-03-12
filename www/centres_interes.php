@@ -165,6 +165,67 @@ function normalize_categories(array $product, int $mainCategoryId): array {
     return $categories;
 }
 
+$CENTRE_TYPE_CATEGORY_OPTIONS = [
+    'centre-interes' => "Centre d'interès",
+    'credits-de-sintesi' => 'Crèdit de síntesi',
+    'estades-de-final-de-curs' => 'Estada de final de curs',
+    'colonies-per-afa' => 'Colònia per afa',
+];
+$CENTRE_TYPE_DEFAULT_SELECTION = ['credits-de-sintesi'];
+
+function selected_type_category_slugs(array $postData, array $allowedOptions, array $defaultSelection): array {
+    $selected = $postData['category_types'] ?? [];
+    if (!is_array($selected)) {
+        $selected = [$selected];
+    }
+
+    $allowed = array_keys($allowedOptions);
+    $selected = array_values(array_filter(array_map('trim', $selected), fn($slug) => in_array($slug, $allowed, true)));
+
+    return $selected ?: $defaultSelection;
+}
+
+function category_ids_for_slugs(string $siteKey, array $slugs): array {
+    $categories = [];
+    foreach ($slugs as $slug) {
+        $catId = category_id($siteKey, $slug);
+        if ($catId) {
+            $categories[] = ['id' => (int)$catId];
+        }
+    }
+
+    return $categories;
+}
+
+function merge_type_categories(array $product, array $selectedSlugs, array $typeOptions): array {
+    $managedSlugs = array_flip(array_keys($typeOptions));
+    $categories = [];
+
+    foreach ($product['categories'] ?? [] as $cat) {
+        $slug = $cat['slug'] ?? '';
+        $id = (int)($cat['id'] ?? 0);
+        if ($id && !isset($managedSlugs[$slug])) {
+            $categories[] = ['id' => $id];
+        }
+    }
+
+    foreach (category_ids_for_slugs('descoberta', $selectedSlugs) as $cat) {
+        $categories[] = $cat;
+    }
+
+    $deduped = [];
+    $seen = [];
+    foreach ($categories as $cat) {
+        $id = (int)($cat['id'] ?? 0);
+        if ($id > 0 && !isset($seen[$id])) {
+            $seen[$id] = true;
+            $deduped[] = ['id' => $id];
+        }
+    }
+
+    return $deduped;
+}
+
 if ($products) {
     $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
     $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
@@ -272,6 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         $categoria = [$categoria];
     }
     $categoria = array_values(array_filter(array_map('trim', $categoria)));
+    $selectedTypeCategories = selected_type_category_slugs($_POST, $CENTRE_TYPE_CATEGORY_OPTIONS, $CENTRE_TYPE_DEFAULT_SELECTION);
 
     $payload = [
         'name' => $title,
@@ -307,10 +369,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
         $payload['slug'] = $slug;
     }
 
-    $catId = category_id('descoberta', 'centre-interes');
-    if ($catId) {
-        $payload['categories'] = normalize_categories($product, $catId);
-    }
+    $payload['categories'] = merge_type_categories($product, $selectedTypeCategories, $CENTRE_TYPE_CATEGORY_OPTIONS);
 
     if (!empty($_FILES['featured_file']['tmp_name'])) {
         $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
@@ -414,10 +473,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['product_action'] ?? '') ==
                 if ($slugEs !== '') {
                     $payloadEs['slug'] = $slugEs;
                 }
-                $catId = category_id('descoberta', 'centre-interes');
-                if ($catId) {
-                    $payloadEs['categories'] = normalize_categories($translationProduct ?? $product, $catId);
-                }
+                $payloadEs['categories'] = merge_type_categories($translationProduct ?? $product, $selectedTypeCategories, $CENTRE_TYPE_CATEGORY_OPTIONS);
 
                 if ($translationProduct) {
                     $translationUpdate = woo_update_product('descoberta', (int)$translationProduct['id'], $payloadEs);
@@ -461,6 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         $categoria = [$categoria];
     }
     $categoria = array_values(array_filter(array_map('trim', $categoria)));
+    $selectedTypeCategories = selected_type_category_slugs($_POST, $CENTRE_TYPE_CATEGORY_OPTIONS, $CENTRE_TYPE_DEFAULT_SELECTION);
     $payload = [
         'name' => $title,
         'status' => $status,
@@ -496,10 +553,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
         redirect('/centres_interes.php');
     }
 
-    $catId = category_id('descoberta', 'centre-interes');
-    if ($catId) {
-        $payload['categories'][] = ['id' => $catId];
-    }
+    $payload['categories'] = category_ids_for_slugs('descoberta', $selectedTypeCategories);
 
     if (!empty($_FILES['featured_file']['tmp_name'])) {
         $upload = wp_upload_media('descoberta', $_FILES['featured_file']);
@@ -648,6 +702,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     <?php
                         $translationProduct = find_translation_product($allProducts, (int)($product['id'] ?? 0));
                         $editorPayload = $product;
+                        $editorPayload['type_categories'] = array_values(array_filter(array_map(function ($cat) use ($CENTRE_TYPE_CATEGORY_OPTIONS) {
+                            $slug = $cat['slug'] ?? '';
+                            return isset($CENTRE_TYPE_CATEGORY_OPTIONS[$slug]) ? $slug : null;
+                        }, $product['categories'] ?? [])));
+                        if (!$editorPayload['type_categories']) {
+                            $editorPayload['type_categories'] = $CENTRE_TYPE_DEFAULT_SELECTION;
+                        }
                         $editorPayload['translation'] = $translationProduct ? [
                             'id' => $translationProduct['id'] ?? 0,
                             'name' => $translationProduct['name'] ?? '',
@@ -727,6 +788,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="ca">
+                    <div class="category-type-row">
+                        <label>Tipo de categoria</label>
+                        <div class="checkbox-list horizontal">
+                            <?php foreach ($CENTRE_TYPE_CATEGORY_OPTIONS as $slug => $label): ?>
+                                <label><input type="checkbox" name="category_types[]" value="<?php echo htmlspecialchars($slug); ?>" <?php echo in_array($slug, $CENTRE_TYPE_DEFAULT_SELECTION, true) ? 'checked' : ''; ?>> <?php echo htmlspecialchars($label); ?></label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
                     <label>Títol del producte <span class="required-asterisk">*</span></label>
                     <input type="text" name="title" required>
 
@@ -1078,6 +1148,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="ca">
+                    <div class="category-type-row">
+                        <label>Tipo de categoria</label>
+                        <div class="checkbox-list horizontal">
+                            <?php foreach ($CENTRE_TYPE_CATEGORY_OPTIONS as $slug => $label): ?>
+                                <label><input type="checkbox" name="category_types[]" value="<?php echo htmlspecialchars($slug); ?>" <?php echo in_array($slug, $CENTRE_TYPE_DEFAULT_SELECTION, true) ? 'checked' : ''; ?>> <?php echo htmlspecialchars($label); ?></label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
+
                         <label>Títol del producte <span class="required-asterisk">*</span></label>
                         <input type="text" name="title" required>
 
