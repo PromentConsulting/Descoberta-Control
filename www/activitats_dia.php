@@ -744,6 +744,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="ca">
+                    <div class="category-type-row">
+                        <label>Tipus de categoria</label>
+                        <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
+                            <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                         <label>Títol del producte <span class="required-asterisk">*</span></label>
                         <input type="text" name="title" required>
 
@@ -842,6 +850,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
+                        <div class="category-type-row">
+                            <label>Tipus de categoria</label>
+                            <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
+                                <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                    <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                         <label>Título del producto <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
@@ -969,6 +985,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="ca">
+                    <div class="category-type-row">
+                        <label>Tipus de categoria</label>
+                        <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
+                            <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                <label><input type="checkbox" name="category_slugs[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                         <label>Títol del producte <span class="required-asterisk">*</span></label>
                         <input type="text" name="title" required>
 
@@ -1064,6 +1088,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
                     </div>
 
                     <div class="language-panel" data-language-panel data-lang="es">
+                        <div class="category-type-row">
+                            <label>Tipus de categoria</label>
+                            <div class="checkbox-group checkbox-group-inline" data-category-checkbox-group>
+                                <?php foreach ($activitatCategoryOptions as $slugOption => $labelOption): ?>
+                                    <label><input type="checkbox" name="category_slugs_es[]" value="<?php echo htmlspecialchars($slugOption); ?>" <?php echo $slugOption === 'activitat-de-dia' ? 'checked' : ''; ?>> <?php echo htmlspecialchars($labelOption); ?></label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                         <label>Título del producto <span class="required-asterisk">*</span></label>
                         <input type="text" name="title_es">
 
