@@ -171,7 +171,7 @@ $CENTRE_TYPE_CATEGORY_OPTIONS = [
     'estades-de-final-de-curs' => 'Estada de final de curs',
     'colonies-per-afa' => 'Colònia per afa',
 ];
-$CENTRE_TYPE_DEFAULT_SELECTION = ['credits-de-sintesi'];
+$CENTRE_TYPE_DEFAULT_SELECTION = ['centre-interes'];
 
 function selected_type_category_slugs(array $postData, array $allowedOptions, array $defaultSelection): array {
     $selected = $postData['category_types'] ?? [];
