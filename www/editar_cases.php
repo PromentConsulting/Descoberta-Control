@@ -9,8 +9,6 @@ $productsResponse = woo_all_products('descoberta');
 $allProducts = $productsResponse['success'] ? ($productsResponse['data'] ?? []) : [];
 $cases = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'cases-de-colonies') : [];
 $cases = array_values(array_filter($cases, fn($case) => !has_category_slug($case, 'preu')));
-$cases = array_values(array_filter($cases, fn($case) => !is_translation_product($case)));
-$cases = array_values(array_filter($cases, fn($case) => !is_spanish_language_product($case)));
 $activitats = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'activitat-de-dia') : [];
 $centres = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'centre-interes') : [];
 $activitats = array_values(array_filter($activitats, fn($activitat) => !is_translation_product($activitat)));
@@ -985,6 +983,7 @@ $comarquesOptions = array_values(array_unique($comarquesOptions));
 sort($comarquesOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
 $filters = [
+    'language' => in_array($_GET['language'] ?? 'all', ['all', 'ca', 'es', 'none'], true) ? ($_GET['language'] ?? 'all') : 'all',
     'places_min' => max($placesRange['min'], (int)($_GET['places_min'] ?? $placesRange['min'])),
     'places_max' => min($placesRange['max'], (int)($_GET['places_max'] ?? $placesRange['max'])),
     'exclusivitat_min' => max(0, (int)($_GET['exclusivitat_min'] ?? 0)),
@@ -1006,6 +1005,7 @@ if ($filters['exclusivitat_min'] > $filters['exclusivitat_max']) {
 }
 
 $cases = array_values(array_filter($cases, function ($case) use ($filters, $caseKeys) {
+    $language = product_language($case);
     $places = (int)(meta_value($case, $caseKeys['places'] ?? '') ?? 0);
     $exclusivitat = (int)(meta_value($case, $caseKeys['exclusivitat'] ?? '') ?? 0);
     $regims = regims_array((string)meta_value($case, $caseKeys['regims_admessos'] ?? '') ?? '');
@@ -1013,6 +1013,18 @@ $cases = array_values(array_filter($cases, function ($case) use ($filters, $case
     $comarca = trim((string)meta_value($case, $caseKeys['comarca'] ?? ''));
     $piscina = normalize_yes_no(meta_value($case, $caseKeys['piscina'] ?? ''));
     $wifi = normalize_yes_no(meta_value($case, $caseKeys['wifi'] ?? ''));
+
+    if ($filters['language'] === 'ca' && $language !== 'ca') {
+        return false;
+    }
+
+    if ($filters['language'] === 'es' && $language !== 'es') {
+        return false;
+    }
+
+    if ($filters['language'] === 'none' && $language !== '') {
+        return false;
+    }
 
     if ($places < $filters['places_min'] || $places > $filters['places_max']) {
         return false;
@@ -1072,6 +1084,16 @@ usort($cases, function ($a, $b) {
 
     <div class="filters-card">
         <form method="GET" class="filters-grid">
+            <div class="filter-block">
+                <label class="filter-label">Idioma (Polylang)</label>
+                <select name="language">
+                    <option value="all" <?php echo $filters['language'] === 'all' ? 'selected' : ''; ?>>Tots</option>
+                    <option value="ca" <?php echo $filters['language'] === 'ca' ? 'selected' : ''; ?>>Català</option>
+                    <option value="es" <?php echo $filters['language'] === 'es' ? 'selected' : ''; ?>>Español</option>
+                    <option value="none" <?php echo $filters['language'] === 'none' ? 'selected' : ''; ?>>Sense idioma</option>
+                </select>
+            </div>
+
             <div class="filter-block">
                 <label class="filter-label">Cercar per nom</label>
                 <input type="search" name="search" placeholder="Escriu el nom de la casa" data-table-search data-table-target="#cases-table">
