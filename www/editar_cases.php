@@ -9,11 +9,14 @@ $productsResponse = woo_all_products('descoberta');
 $allProducts = $productsResponse['success'] ? ($productsResponse['data'] ?? []) : [];
 $cases = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'cases-de-colonies') : [];
 $cases = array_values(array_filter($cases, fn($case) => !has_category_slug($case, 'preu')));
-$cases = array_values(array_filter($cases, fn($case) => dc_is_primary_language_product($case, $allProducts, 'ca')));
+$cases = array_values(array_filter($cases, fn($case) => !is_translation_product($case)));
+$cases = array_values(array_filter($cases, fn($case) => !is_spanish_language_product($case)));
 $activitats = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'activitat-de-dia') : [];
 $centres = $productsResponse['success'] ? filter_products_by_category($productsResponse['data'], 'centre-interes') : [];
-$activitats = array_values(array_filter($activitats, fn($activitat) => dc_is_primary_language_product($activitat, $allProducts, 'ca')));
-$centres = array_values(array_filter($centres, fn($centre) => dc_is_primary_language_product($centre, $allProducts, 'ca')));
+$activitats = array_values(array_filter($activitats, fn($activitat) => !is_translation_product($activitat)));
+$centres = array_values(array_filter($centres, fn($centre) => !is_translation_product($centre)));
+$activitats = array_values(array_filter($activitats, fn($activitat) => !is_spanish_language_product($activitat)));
+$centres = array_values(array_filter($centres, fn($centre) => !is_spanish_language_product($centre)));
 
 define('PREU_LINK_META_KEY', 'linked_case_id');
 
@@ -52,15 +55,23 @@ function has_category_slug(array $product, string $slug): bool {
 }
 
 function translation_parent_id(array $product): int {
-    return dc_translation_parent_id($product);
+    $parent = meta_value($product, TRANSLATION_PARENT_META_KEY);
+    if ($parent === null || $parent === '') {
+        $parent = $product[TRANSLATION_PARENT_META_KEY] ?? $product['translation_parent_id'] ?? $product['translation_of'] ?? 0;
+    }
+    return (int)$parent;
 }
 
 function is_translation_product(array $product): bool {
-    return dc_is_translation_product($product);
+    return translation_parent_id($product) > 0;
 }
 
 function product_language(array $product): string {
-    return dc_product_lang($product);
+    $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
+    if ($lang === null || $lang === '') {
+        $lang = $product[TRANSLATION_LANG_META_KEY] ?? $product['lang'] ?? '';
+    }
+    return strtolower(trim((string)$lang));
 }
 
 function is_spanish_language_product(array $product): bool {
@@ -68,7 +79,12 @@ function is_spanish_language_product(array $product): bool {
 }
 
 function find_translation_product(array $products, int $parentId): ?array {
-    return dc_find_translation_product($products, $parentId, 'es');
+    foreach ($products as $product) {
+        if (translation_parent_id($product) === $parentId) {
+            return $product;
+        }
+    }
+    return null;
 }
 
 function update_translation_child_link(int $baseProductId, ?int $translationProductId): void {
