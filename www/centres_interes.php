@@ -87,47 +87,23 @@ function meta_value(array $product, string $key) {
 }
 
 function translation_parent_id(array $product): int {
-    $parent = meta_value($product, TRANSLATION_PARENT_META_KEY);
-    if ($parent === null || $parent === '') {
-        $parent = $product[TRANSLATION_PARENT_META_KEY] ?? $product['translation_parent_id'] ?? $product['translation_of'] ?? 0;
-    }
-    return (int)$parent;
+    return dc_translation_parent_id($product);
 }
 
 function is_translation_product(array $product): bool {
-    return translation_parent_id($product) > 0;
+    return dc_is_translation_product($product);
 }
 
 function product_lang(array $product): string {
-    $lang = meta_value($product, TRANSLATION_LANG_META_KEY);
-    if ($lang === null || $lang === '') {
-        $lang = meta_value($product, 'lang')
-            ?? $product[TRANSLATION_LANG_META_KEY]
-            ?? $product['lang']
-            ?? $product['locale']
-            ?? '';
-    }
-
-    $normalized = strtolower(trim((string)$lang));
-    if ($normalized === '') {
-        return '';
-    }
-
-    return preg_split('/[-_]/', $normalized)[0] ?: $normalized;
+    return dc_product_lang($product);
 }
 
 function is_catalan_product(array $product): bool {
-    $lang = product_lang($product);
-    return in_array($lang, ['ca', 'cat', 'catala', 'català'], true);
+    return dc_product_lang($product) === 'ca';
 }
 
 function find_translation_product(array $products, int $parentId): ?array {
-    foreach ($products as $product) {
-        if (translation_parent_id($product) === $parentId) {
-            return $product;
-        }
-    }
-    return null;
+    return dc_find_translation_product($products, $parentId, 'es');
 }
 
 function normalize_slug_input(string $slug): string {
@@ -227,8 +203,7 @@ function merge_type_categories(array $product, array $selectedSlugs, array $type
 }
 
 if ($products) {
-    $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
-    $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
+    $products = array_values(array_filter($products, fn($product) => dc_is_primary_language_product($product, $allProducts, 'ca')));
 }
 
 usort($products, function ($a, $b) {
