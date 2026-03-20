@@ -10,7 +10,7 @@ $apiError = null;
 $response = woo_all_products('descoberta');
 if ($response['success']) {
     $allProducts = $response['data'] ?? [];
-    $products = filter_products_by_category($allProducts, 'activitat-de-dia');
+    $products = filter_products_by_categories($allProducts, ['activitat-de-dia', 'propostes-a-laula']);
 } else {
     $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
@@ -265,11 +265,6 @@ function merge_activitat_type_categories(array $product, array $selectedSlugs, a
     }
 
     return $deduped;
-}
-
-if ($products) {
-    $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
-    $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
 }
 
 usort($products, function ($a, $b) {
@@ -633,7 +628,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
 <main class="content fade-in">
     <h1>Activitats de dia</h1>
-    <p class="subtitle">Productes de WooCommerce amb la categoria activitat-de-dia</p>
+    <p class="subtitle">Productes de WooCommerce amb les categories activitat-de-dia o propostes-a-laula</p>
 
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>

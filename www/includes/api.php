@@ -206,18 +206,30 @@ function category_id(string $siteKey, string $slug): ?int {
     return null;
 }
 
-function filter_products_by_category(array $products, string $slug): array {
-    return array_values(array_filter($products, function ($product) use ($slug) {
-        if (!isset($product['categories'])) {
+function filter_products_by_categories(array $products, array $slugs): array {
+    $allowedSlugs = array_values(array_filter(array_map('strval', $slugs), fn($slug) => $slug !== ''));
+    if (!$allowedSlugs) {
+        return [];
+    }
+
+    $allowedLookup = array_fill_keys($allowedSlugs, true);
+
+    return array_values(array_filter($products, function ($product) use ($allowedLookup) {
+        if (!isset($product['categories']) || !is_array($product['categories'])) {
             return false;
         }
         foreach ($product['categories'] as $cat) {
-            if (($cat['slug'] ?? '') === $slug) {
+            $slug = $cat['slug'] ?? '';
+            if ($slug !== '' && isset($allowedLookup[$slug])) {
                 return true;
             }
         }
         return false;
     }));
+}
+
+function filter_products_by_category(array $products, string $slug): array {
+    return filter_products_by_categories($products, [$slug]);
 }
 
 function sync_case_to_site(string $siteKey, array $sourceProduct, array $acfKeys): array {
