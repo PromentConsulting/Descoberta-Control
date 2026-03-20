@@ -18,7 +18,7 @@ $apiError = null;
 $response = woo_all_products('descoberta');
 if ($response['success']) {
     $allProducts = $response['data'] ?? [];
-    $products = filter_products_by_category($allProducts, 'centre-interes');
+    $products = filter_products_by_categories($allProducts, ['centre-interes', 'colonies-per-afa', 'credits-de-sintesi', 'estades-de-final-de-curs']);
 } else {
     $apiError = $response['error'] ?? 'No s\'ha pogut connectar amb la API de Descoberta';
 }
@@ -224,11 +224,6 @@ function merge_type_categories(array $product, array $selectedSlugs, array $type
     }
 
     return $deduped;
-}
-
-if ($products) {
-    $products = array_values(array_filter($products, fn($product) => !is_translation_product($product)));
-    $products = array_values(array_filter($products, fn($product) => is_catalan_product($product)));
 }
 
 usort($products, function ($a, $b) {
@@ -658,6 +653,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($_POST['product_action'])) {
 
 <main class="content fade-in">
     <h1>Centres d'interès</h1>
+    <p class="subtitle">Productes de WooCommerce amb les categories centre-interes, colonies-per-afa, credits-de-sintesi o estades-de-final-de-curs</p>
 
     <?php foreach ($messages as $msg): ?>
         <div class="alert <?php echo $msg['type']; ?>"><?php echo htmlspecialchars($msg['message']); ?></div>
